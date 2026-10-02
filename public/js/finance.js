@@ -1,25 +1,42 @@
 const JJ_FINANCE_KEY = "joyjourneyFinance";
-const JJ_FINANCE_VERSION = 2;
+const JJ_FINANCE_VERSION = 3;
 let currentExpenseEditId = "";
 let paymentSlipData = "";
 let activePayment = null;
 
+/* Demo expenses for the seeded demo trips (matched by invite code) */
+const JJ_FINANCE_DEMO_SEEDS = {
+  SAMET26: () => [
+    createFinanceExpense("samet-hotel", "Hotel", 2400, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Stay"),
+    createFinanceExpense("samet-van", "Van to pier", 960, "ploy", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport"),
+    createFinanceExpense("samet-dinner", "Beach dinner", 1280, "book", ["yin", "ploy", "book", "gun"], "equal", {}, "Food")
+  ],
+  BKK26: () => [
+    createFinanceExpense("bkk-cafe", "Cafe hopping", 900, "gun", ["yin", "ploy", "book", "gun"], "equal", {}, "Food"),
+    createFinanceExpense("bkk-taxi", "Taxi", 640, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport")
+  ]
+};
+
 function financeSeedData() {
   return {
     version: JJ_FINANCE_VERSION,
-    expenses: {
-      samet: [
-        createFinanceExpense("samet-hotel", "Hotel", 2400, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Stay"),
-        createFinanceExpense("samet-van", "Van to pier", 960, "ploy", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport"),
-        createFinanceExpense("samet-dinner", "Beach dinner", 1280, "book", ["yin", "ploy", "book", "gun"], "equal", {}, "Food")
-      ],
-      bkk: [
-        createFinanceExpense("bkk-cafe", "Cafe hopping", 900, "gun", ["yin", "ploy", "book", "gun"], "equal", {}, "Food"),
-        createFinanceExpense("bkk-taxi", "Taxi", 640, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport")
-      ]
-    },
+    expenses: {},
     payments: []
   };
+}
+
+function seedFinanceForTrips() {
+  const trips = typeof getAllTrips === "function" ? getAllTrips() : [];
+  const data = getFinanceData();
+  let changed = false;
+  trips.forEach((trip) => {
+    const seed = JJ_FINANCE_DEMO_SEEDS[trip.inviteCode];
+    if (seed && data.expenses[trip.id] === undefined) {
+      data.expenses[trip.id] = seed();
+      changed = true;
+    }
+  });
+  if (changed) saveFinanceData(data);
 }
 
 function createFinanceExpense(id, title, amount, paidBy, participants, splitType, shares, category) {
@@ -53,35 +70,32 @@ function saveFinanceData(data) {
   localStorage.setItem(JJ_FINANCE_KEY, JSON.stringify(data));
 }
 
+/* Active trips first, then finished ones (so old trips can still be settled) */
 function getAllActiveTripsForFinance() {
-  const deleted = typeof getDeletedTripIds === "function" ? getDeletedTripIds() : [];
-  const defaults = typeof DEFAULT_TRIPS !== "undefined" ? Object.values(DEFAULT_TRIPS) : [];
-  const stored = typeof getStoredTrips === "function" ? getStoredTrips() : [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return [...defaults, ...stored].filter((trip) => {
-    if (deleted.includes(trip.id)) {
-      return false;
-    }
-    const endDate = new Date(`${trip.endDate}T23:59:59`);
-    return endDate >= today;
-  });
+  const trips = typeof getAllTrips === "function" ? getAllTrips() : [];
+  return [...trips.filter((trip) => trip.status === "active"), ...trips.filter((trip) => trip.status !== "active")];
 }
 
-function getFinanceMembers() {
+/* The people in a trip come from the database (trip_members) */
+function getFinanceMembers(tripId) {
+  const trip = tripId && typeof getTripById === "function" ? getTripById(tripId) : null;
+  if (trip?.members?.length) {
+    return trip.members;
+  }
   if (typeof getJoyMembers === "function") {
     return getJoyMembers();
   }
-  return [
-    { id: "yin", name: "Yin" },
-    { id: "ploy", name: "Ploy" },
-    { id: "book", name: "Book" },
-    { id: "gun", name: "Gun" }
-  ];
+  return [];
 }
 
 function memberById(id) {
-  return getFinanceMembers().find((member) => member.id === id) || { id, name: id, avatar: "" };
+  const trips = typeof getAllTrips === "function" ? getAllTrips() : [];
+  for (const trip of trips) {
+    const member = (trip.members || []).find((item) => item.id === id);
+    if (member) return member;
+  }
+  const local = typeof getJoyUsers === "function" ? getJoyUsers().find((user) => user.id === id) : null;
+  return local || { id, name: id, avatar: "" };
 }
 
 function money(value) {
@@ -137,7 +151,7 @@ function normalizeShareRemainder(shares, participants, amount) {
 }
 
 function computeTripBalances(tripId) {
-  const balances = Object.fromEntries(getFinanceMembers().map((member) => [member.id, 0]));
+  const balances = Object.fromEntries(getFinanceMembers(tripId).map((member) => [member.id, 0]));
   getTripExpenses(tripId).forEach((expense) => {
     const amount = Number(expense.amount || 0);
     balances[expense.paidBy] = roundMoney((balances[expense.paidBy] || 0) + amount);
@@ -202,7 +216,7 @@ function financeTripSwitch(trip, active) {
   return `
     <button class="trip-switch ${active ? "active" : ""}" data-finance-trip="${escapeHTML(trip.id)}" onclick="selectFinanceTrip('${escapeHTML(trip.id)}')">
       <img src="${trip.cover}" alt="${escapeHTML(trip.name)}">
-      <span><strong>${escapeHTML(trip.name)}</strong><small>${money(summary.total)} spent</small></span>
+      <span><strong>${escapeHTML(trip.name)}</strong><small>${money(summary.total)} spent${trip.status === "finished" ? " · Finished" : ""}</small></span>
       <i class="ph ph-caret-right"></i>
     </button>
   `;
@@ -217,6 +231,14 @@ function renderFinancePage() {
   }
 
   const trips = getAllActiveTripsForFinance();
+  if (!trips.length) {
+    const error = typeof JJ_TRIPS_ERROR !== "undefined" && JJ_TRIPS_ERROR;
+    switcher.innerHTML = "";
+    panels.innerHTML = `<section class="card module-empty"><i class="ph-duotone ph-wallet"></i>${error
+      ? `<h3>Could not load trips</h3><p>${escapeHTML(error.message)}</p>`
+      : `<h3>No trips yet</h3><p>Create or join a trip to start tracking expenses.</p><a class="btn primary small" href="trips.html"><i class="ph-bold ph-plus"></i> Go to My Trips</a>`}</section>`;
+    return;
+  }
   const queryTrip = new URLSearchParams(location.search).get("trip");
   const currentTrip = trips.some((trip) => trip.id === queryTrip) ? queryTrip : trips[0]?.id || "";
   switcher.innerHTML = trips.map((trip) => financeTripSwitch(trip, trip.id === currentTrip)).join("");
@@ -360,6 +382,10 @@ function populateExpenseTripSelect(trips, selectedTrip) {
 }
 
 function openExpenseModal() {
+  if (!getAllActiveTripsForFinance().length) {
+    demoToast("Create or join a trip first");
+    return;
+  }
   currentExpenseEditId = "";
   const title = document.getElementById("expenseModalTitle");
   if (title) title.textContent = "Add Expense";
@@ -377,7 +403,7 @@ function renderExpenseParticipants(selectedParticipants, savedShares = {}) {
   const box = document.getElementById("expenseParticipants");
   const payer = document.getElementById("expensePaidBy");
   if (!box || !payer) return;
-  const members = getFinanceMembers();
+  const members = getFinanceMembers(document.getElementById("expenseTripSelect")?.value);
   const selected = selectedParticipants || members.map((member) => member.id);
   payer.innerHTML = members.map((member) => `<option value="${member.id}">${escapeHTML(member.name)}</option>`).join("");
   box.innerHTML = members.map((member) => `
@@ -612,13 +638,19 @@ function verifyPayment(paymentId) {
 function updateFinanceOverview() {
   const element = document.getElementById("tripExpenseDetail");
   if (!element) return;
-  const tripId = new URLSearchParams(location.search).get("trip") || "samet";
+  const tripId = new URLSearchParams(location.search).get("trip");
+  if (!tripId) return;
   element.textContent = money(financeSummary(tripId).total);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await window.jjTripsReady;
+  seedFinanceForTrips();
   renderFinancePage();
   document.getElementById("expenseAmount")?.addEventListener("input", () => renderSplitFields());
   document.getElementById("expenseSplitType")?.addEventListener("change", () => renderSplitFields());
-  document.getElementById("expenseTripSelect")?.addEventListener("change", () => selectFinanceTrip(document.getElementById("expenseTripSelect").value));
+  document.getElementById("expenseTripSelect")?.addEventListener("change", () => {
+    selectFinanceTrip(document.getElementById("expenseTripSelect").value);
+    renderExpenseParticipants();
+  });
 });

@@ -137,99 +137,28 @@
        My Trips
       </h1>
 <p class="page-subtitle">
-       Only active and upcoming trips stay here. Finished trips disappear from this list automatically.
+       Active trips show up in Planner, Expenses and Checklist. Finished trips move to their own shelf below.
       </p>
 </div>
-<button class="btn primary" onclick="openModal('tripModal')">
+<div class="page-head-actions">
+<button class="btn soft" onclick="openJoinModal()">
+<i class="ph-bold ph-ticket">
+</i>
+      Join with Code
+     </button>
+<button class="btn primary" onclick="resetTripForm(); openModal('tripModal')">
 <i class="ph-bold ph-plus">
 </i>
       Create Trip
      </button>
+</div>
 </section>
+<div class="trip-shelf-title">
+<h2><i class="ph-duotone ph-airplane-takeoff"></i> Active trips</h2>
+<span class="pill pink" id="activeCount">0</span>
+</div>
 <section class="grid trip-grid" id="activeTrips">
-<a class="trip-card-link active-trip" data-end-date="2026-10-12" data-trip-id="samet" href="trip-detail.html?trip=samet">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Tropical beach in Thailand" class="cover-image" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill pink trip-status">
-         Upcoming
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Koh Samet Getaway
-        </h2>
-<p>
-<i class="ph-duotone ph-calendar-blank">
-</i>
-         10–12 Oct 2026
-        </p>
-<p>
-<i class="ph-duotone ph-users-three">
-</i>
-         Yin, Ploy, Book, Gun
-        </p>
-<span class="card-enter">
-<i class="ph ph-arrow-up-right">
-</i>
-</span>
-</div>
-</article>
-</a>
-<a class="trip-card-link active-trip" data-end-date="2026-11-29" data-trip-id="bkk" href="trip-detail.html?trip=bkk">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Bangkok skyline" class="cover-image" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill mint trip-status">
-         Planning
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Bangkok Weekend
-        </h2>
-<p>
-<i class="ph-duotone ph-calendar-blank">
-</i>
-         28–29 Nov 2026
-        </p>
-<p>
-<i class="ph-duotone ph-users-three">
-</i>
-         Yin, Ploy, Book, Gun
-        </p>
-<span class="card-enter">
-<i class="ph ph-arrow-up-right">
-</i>
-</span>
-</div>
-</article>
-</a>
-<a class="trip-card-link active-trip" data-end-date="2025-12-15" data-trip-id="chiangmai" href="trip-detail.html?trip=chiangmai">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Chiang Mai mountain view" class="cover-image" src="https://images.pexels.com/photos/35683130/pexels-photo-35683130.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill lavender trip-status">
-         Finished
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Chiang Mai 2025
-        </h2>
-<p>
-<i class="ph-duotone ph-check-circle">
-</i>
-         Completed
-        </p>
-<p>
-<i class="ph-duotone ph-images">
-</i>
-         Kept in Memories
-        </p>
-</div>
-</article>
-</a>
+<div class="card trip-loading"><i class="ph ph-spinner-gap spin"></i> Loading trips...</div>
 </section>
 <div class="empty-state" hidden="" id="tripEmpty">
 <i class="ph-duotone ph-suitcase">
@@ -238,9 +167,17 @@
       No active trips
      </h2>
 <p>
-      Create a new journey and invite your friends.
+      Create a new journey or join a friend's trip with an invite code.
      </p>
 </div>
+<section class="finished-section" hidden="" id="finishedSection">
+<div class="trip-shelf-title">
+<h2><i class="ph-duotone ph-flag-checkered"></i> Finished trips</h2>
+<span class="pill lavender" id="finishedCount">0</span>
+</div>
+<section class="grid trip-grid finished-grid" id="finishedTrips">
+</section>
+</section>
 <div class="modal" id="tripModal">
 <div class="modal-box create-trip-box">
 <button class="close" onclick="closeModal('tripModal')">
@@ -258,7 +195,7 @@
          Choose trip cover
         </span>
 <small>
-         JPG or PNG
+         JPG or PNG · optional
         </small>
 </div>
 <input accept="image/*" id="tripCover" onchange="previewTripCover(event)" type="file"/>
@@ -285,7 +222,7 @@
        Budget
        <input id="tripBudget" placeholder="12000" type="number"/>
 </label>
-<button class="btn primary full" onclick="createTrip()">
+<button class="btn primary full" onclick="createTrip(this)">
 <i class="ph-bold ph-sparkle">
 </i>
        Create Trip
@@ -293,10 +230,39 @@
 </div>
 </div>
 </div>
+<div class="modal" id="joinTripModal">
+<form class="modal-box join-trip-box" onsubmit="joinTrip(event, this.querySelector('button[type=submit]'))">
+<button class="close" onclick="closeModal('joinTripModal')" type="button">
+<i class="ph ph-x">
+</i>
+</button>
+<div class="delete-icon-bubble join-icon-bubble">
+<i class="ph-duotone ph-ticket">
+</i>
+</div>
+<h2>
+       Join a trip
+      </h2>
+<p class="muted">
+       Ask the trip owner for the invite code on their Trip Detail page.
+      </p>
+<label>
+       Invite code
+       <input autocomplete="off" class="invite-input" id="joinCode" maxlength="20" placeholder="e.g. K7PQ2M"/>
+</label>
+<p class="form-message" id="joinMessage"></p>
+<button class="btn primary full" type="submit">
+<i class="ph-bold ph-sign-in">
+</i>
+       Join Trip
+      </button>
+</form>
+</div>
 </main>
 <div class="toast" id="toast">
    Done
   </div>
+<script src="js/api.js"></script>
 <script src="js/script.js">
 </script>
 <script src="js/auth.js"></script></body>

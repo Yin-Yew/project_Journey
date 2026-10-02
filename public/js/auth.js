@@ -290,6 +290,7 @@ function saveProfile(event) {
   saveJoyUsers(users);
   renderCurrentUserUI(users[index]);
   loadProfileForm(users[index]);
+  syncProfileToServer(users[index]);
   demoToast("Profile saved");
 }
 
@@ -310,6 +311,7 @@ function shuffleAvatar() {
   saveJoyUsers(users);
   renderCurrentUserUI(users[index]);
   loadProfileForm(users[index]);
+  syncProfileToServer(users[index]);
   demoToast("New avatar ready");
 }
 
@@ -353,4 +355,21 @@ function loadUISettings() {
   applyUISettings(getUISettings());
 }
 
-document.addEventListener("DOMContentLoaded", bootstrapAuth);
+function syncProfileToServer(user) {
+  if (typeof jjSyncUser !== "function" || !user) return;
+  jjSyncUser(user).catch((error) => {
+    if (error.status) demoToast(error.message);
+  });
+}
+
+/* Other scripts wait for this before calling the API (it resolves with the logged-in user) */
+window.jjAuthReady = new Promise((resolve) => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await bootstrapAuth();
+    } catch (error) {
+      console.error(error);
+    }
+    resolve(getCurrentUser());
+  });
+});

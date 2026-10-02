@@ -2779,3 +2779,245 @@ html[data-theme] .day-tabs .active {
     grid-template-columns:1fr
   }
 }
+
+/* =========================================================
+   Trips connected to the database
+   ========================================================= */
+
+[hidden] {
+  display: none !important;
+}
+
+.page-head-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.trip-shelf-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 14px;
+}
+
+.trip-shelf-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 22px;
+}
+
+.trip-shelf-title h2 i {
+  color: var(--pink-deep);
+}
+
+.finished-section {
+  margin-top: 34px;
+}
+
+.finished-grid .trip-card {
+  filter: saturate(.75);
+}
+
+.finished-grid .trip-card-link:hover .trip-card {
+  filter: none;
+}
+
+.trip-role {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(8px);
+}
+
+.trip-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.spin {
+  display: inline-block;
+  animation: jjSpin .9s linear infinite;
+}
+
+@keyframes jjSpin {
+  to { transform: rotate(360deg); }
+}
+
+.btn:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+}
+
+.join-trip-box {
+  text-align: center;
+}
+
+.join-trip-box label {
+  text-align: left;
+}
+
+.join-icon-bubble {
+  background: var(--accent-soft);
+  color: var(--pink-deep);
+}
+
+.invite-input {
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.invite-input::placeholder {
+  letter-spacing: .05em;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+/* Trip detail */
+
+.banner-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.banner-pills .pill {
+  align-items: center;
+  gap: 4px;
+}
+
+.photo-banner.is-finished {
+  background-image: linear-gradient(90deg, rgba(53, 40, 48, .7), rgba(53, 40, 48, .25)), var(--banner);
+}
+
+.join-code-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.join-code-actions button {
+  cursor: pointer;
+}
+
+.trip-detail-actions {
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 10px;
+}
+
+.members-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.members-card-head h3 {
+  margin-bottom: 6px;
+}
+
+.members-card-head > span {
+  white-space: nowrap;
+}
+
+.member-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-controls .pill {
+  align-items: center;
+  gap: 4px;
+}
+
+.member-action {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent-faint);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: .15s;
+}
+
+.member-action:hover {
+  background: var(--accent-soft);
+  color: var(--pink-deep);
+}
+
+.member-action.danger-icon:hover {
+  background: #fff0f2;
+  color: #d85b72;
+}
+
+.add-member-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.add-member-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  outline: 0;
+  background: #fff;
+}
+
+.add-member-form input:focus {
+  border-color: var(--pink);
+}
+
+.quick-links a.is-disabled {
+  opacity: .45;
+  pointer-events: none;
+}
+
+.detail-error {
+  max-width: 480px;
+  margin: 40px auto;
+}
+
+.detail-error .btn,
+.trip-module-empty .btn {
+  margin-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .page-head-actions {
+    width: 100%;
+  }
+
+  .page-head-actions .btn {
+    flex: 1;
+  }
+
+  .trip-detail-actions {
+    justify-content: stretch;
+  }
+
+  .trip-detail-actions .btn {
+    flex: 1 1 auto;
+  }
+}

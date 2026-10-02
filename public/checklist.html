@@ -147,144 +147,14 @@
      </button>
 </section>
 <div class="trip-switcher" data-trip-group="checklist">
-<button class="trip-switch active active-trip" data-end-date="2026-10-12" data-target="check-samet" data-trip-id="samet" onclick="switchTripPanel(this,'checklist')">
-<img alt="Koh Samet" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
-<span>
-<strong>
-        Koh Samet
-       </strong>
-<small>
-        3 of 5 packed
-       </small>
-</span>
-<i class="ph ph-caret-right">
-</i>
-</button>
-<button class="trip-switch active-trip" data-end-date="2026-11-29" data-target="check-bkk" data-trip-id="bkk" onclick="switchTripPanel(this,'checklist')">
-<img alt="Bangkok" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
-<span>
-<strong>
-        Bangkok Weekend
-       </strong>
-<small>
-        2 of 4 packed
-       </small>
-</span>
-<i class="ph ph-caret-right">
-</i>
-</button>
+<div class="card trip-loading"><i class="ph ph-spinner-gap spin"></i> Loading trips...</div>
 </div>
-<section class="trip-panel active" data-trip-id="samet" data-trip-panel="checklist" id="check-samet">
-<div class="trip-section-head">
-<div>
-<span class="pill pink">
-        Koh Samet Getaway
-       </span>
-<h2>
-        Beach Packing
-       </h2>
-</div>
-<span class="trip-date">
-       10–12 Oct 2026
-      </span>
-</div>
-<section class="card checklist" id="checklist">
-<label>
-<input checked="" type="checkbox"/>
-<span>
-<i class="ph-duotone ph-camera">
-</i>
-        Camera
-       </span>
-</label>
-<label>
-<input checked="" type="checkbox"/>
-<span>
-<i class="ph-duotone ph-plug">
-</i>
-        Charger
-       </span>
-</label>
-<label>
-<input type="checkbox"/>
-<span>
-<i class="ph-duotone ph-sun">
-</i>
-        Sunscreen
-       </span>
-</label>
-<label>
-<input type="checkbox"/>
-<span>
-<i class="ph-duotone ph-baseball-cap">
-</i>
-        Hat
-       </span>
-</label>
-<label>
-<input checked="" type="checkbox"/>
-<span>
-<i class="ph-duotone ph-sneaker">
-</i>
-        Sandals
-       </span>
-</label>
-</section>
-</section>
-<section class="trip-panel" data-trip-id="bkk" data-trip-panel="checklist" id="check-bkk">
-<div class="trip-section-head">
-<div>
-<span class="pill mint">
-        Bangkok Weekend
-       </span>
-<h2>
-        City Packing
-       </h2>
-</div>
-<span class="trip-date">
-       28–29 Nov 2026
-      </span>
-</div>
-<section class="card checklist">
-<label>
-<input checked="" type="checkbox"/>
-<span>
-<i class="ph-duotone ph-camera">
-</i>
-        Camera
-       </span>
-</label>
-<label>
-<input type="checkbox"/>
-<span>
-<i class="ph-duotone ph-battery-charging">
-</i>
-        Power bank
-       </span>
-</label>
-<label>
-<input checked="" type="checkbox"/>
-<span>
-<i class="ph-duotone ph-umbrella">
-</i>
-        Umbrella
-       </span>
-</label>
-<label>
-<input type="checkbox"/>
-<span>
-<i class="ph-duotone ph-shopping-bag">
-</i>
-        Tote bag
-       </span>
-</label>
-</section>
-</section>
 </div>
 </main>
 <div class="toast" id="toast">
    Done
   </div>
+<script src="js/api.js"></script>
 <script src="js/script.js">
 </script>
 <script src="js/auth.js"></script></body>

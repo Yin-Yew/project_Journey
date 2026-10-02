@@ -127,21 +127,15 @@
     </div>
    </header>
    <div class="content">
-    <section class="trip-banner photo-banner" id="tripDetailBanner" style="--banner:url('https://images.pexels.com/photos/36148825/pexels-photo-36148825.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200')">
+    <section class="trip-banner photo-banner" id="tripDetailBanner" style="--banner:linear-gradient(135deg,#ffd5dc,#d5efff)">
      <div class="banner-overlay">
-      <span class="pill pink">
-       Upcoming
-      </span>
-      <h1>
-       Koh Samet Getaway
+      <div class="banner-pills" id="tripDetailPills">
+       <span class="pill pink">Loading...</span>
+      </div>
+      <h1 id="tripDetailName">
+       Loading trip...
       </h1>
-      <p>
-       <i class="ph-duotone ph-calendar-blank">
-       </i>
-       10–12 Oct 2026
-       <i class="ph-duotone ph-map-pin">
-       </i>
-       Rayong
+      <p id="tripDetailMeta">
       </p>
      </div>
      <div class="join-code">
@@ -149,74 +143,61 @@
        Invite Code
       </small>
       <strong id="tripInviteCode">
-       SAMET26
+       ······
       </strong>
-      <button onclick="copyCode()">
-       <i class="ph ph-copy">
-       </i>
-       Copy
-      </button>
+      <div class="join-code-actions">
+       <button onclick="copyCode()">
+        <i class="ph ph-copy">
+        </i>
+        Copy
+       </button>
+       <button hidden="" id="regenInviteBtn" onclick="regenerateInviteCode(this)" title="Create a new code (the old one stops working)">
+        <i class="ph ph-arrows-clockwise">
+        </i>
+        New
+       </button>
+      </div>
      </div>
     </section>
-    <div class="trip-detail-actions">
-     <button class="btn danger" onclick="requestDeleteCurrentTrip()">
-      <i class="ph-duotone ph-trash">
-      </i>
-      Delete Trip
-     </button>
+    <div class="trip-detail-actions" id="tripDetailActions">
     </div>
     <section class="grid dashboard-grid">
-     <article class="card">
-      <h3>
-       Travel Buddies
-      </h3>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Yin avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
-        Yin
-       </span>
-       <span class="pill yellow">
-        Owner
-       </span>
+     <article class="card members-card">
+      <div class="members-card-head">
+       <h3>
+        Travel Buddies
+       </h3>
+       <span class="muted" id="tripMemberCount"></span>
       </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Ploy avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Ploy&amp;backgroundColor=d5efff"/>
-        Ploy
-       </span>
-       <span>
-        Member
-       </span>
+      <div id="tripMembers">
       </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Book avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Book&amp;backgroundColor=dff2d8"/>
-        Book
-       </span>
-       <span>
-        Member
-       </span>
-      </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Gun avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Gun&amp;backgroundColor=eee1ff"/>
-        Gun
-       </span>
-       <span>
-        Member
-       </span>
-      </div>
+      <form class="add-member-form" hidden="" id="addMemberForm" onsubmit="addTripMember(event, this.querySelector('button'))">
+       <input autocomplete="off" id="addMemberInput" placeholder="Friend's email or username"/>
+       <button class="btn primary small" type="submit">
+        <i class="ph-bold ph-user-plus">
+        </i>
+        Add
+       </button>
+      </form>
      </article>
      <article class="card">
       <h3>
        Trip Overview
       </h3>
       <p>
+       <i class="ph-duotone ph-flag">
+       </i>
+       Status:
+       <span id="tripStatusDetail">
+        -
+       </span>
+      </p>
+      <p>
        <i class="ph-duotone ph-wallet">
        </i>
        Budget:
        <span id="tripBudgetDetail">
-        ฿12,000
+        ฿0
        </span>
       </p>
       <p>
@@ -224,7 +205,7 @@
        </i>
        Activities:
        <span id="tripActivitiesDetail">
-        3
+        0
        </span>
       </p>
       <p>
@@ -240,7 +221,7 @@
        </i>
        Packing:
        <span id="tripPackingDetail">
-        60%
+        0%
        </span>
       </p>
      </article>
@@ -248,17 +229,17 @@
       <h3>
        Quick Access
       </h3>
-      <a href="planner.html?trip=samet" id="plannerQuickLink">
+      <a href="planner.html" id="plannerQuickLink">
        <i class="ph-duotone ph-calendar-dots">
        </i>
        Planner
       </a>
-      <a href="expenses.html?trip=samet" id="expensesQuickLink">
+      <a href="expenses.html" id="expensesQuickLink">
        <i class="ph-duotone ph-wallet">
        </i>
        Expenses
       </a>
-      <a href="checklist.html?trip=samet" id="checklistQuickLink">
+      <a href="checklist.html" id="checklistQuickLink">
        <i class="ph-duotone ph-check-square">
        </i>
        Checklist
@@ -267,28 +248,75 @@
     </section>
    </div>
   </main>
-  <div class="modal" id="deleteTripModal">
-   <div class="modal-box delete-confirm-box">
-    <button class="close" onclick="closeModal('deleteTripModal')">
+  <div class="modal" id="editTripModal">
+   <div class="modal-box create-trip-box">
+    <button class="close" onclick="closeModal('editTripModal')">
      <i class="ph ph-x">
      </i>
     </button>
-    <div class="delete-icon-bubble">
+    <h2>
+     Edit trip
+    </h2>
+    <label class="cover-upload" for="editTripCover">
+     <div class="cover-preview" id="editCoverPreview">
+      <i class="ph-duotone ph-image-square">
+      </i>
+      <span>
+       Change trip cover
+      </span>
+     </div>
+     <input accept="image/*" id="editTripCover" onchange="previewTripCover(event, 'editCoverPreview')" type="file"/>
+    </label>
+    <label>
+     Trip name
+     <input id="editTripName" maxlength="150"/>
+    </label>
+    <label>
+     Destination
+     <input id="editTripDestination" maxlength="150"/>
+    </label>
+    <div class="form-two">
+     <label>
+      Start date
+      <input id="editTripStart" type="date"/>
+     </label>
+     <label>
+      End date
+      <input id="editTripEnd" type="date"/>
+     </label>
+    </div>
+    <label>
+     Budget
+     <input id="editTripBudget" min="0" type="number"/>
+    </label>
+    <button class="btn primary full" onclick="saveTripEdit(this)">
+     <i class="ph ph-floppy-disk">
+     </i>
+     Save Changes
+    </button>
+   </div>
+  </div>
+  <div class="modal" id="confirmModal">
+   <div class="modal-box delete-confirm-box">
+    <button class="close" onclick="closeModal('confirmModal')">
+     <i class="ph ph-x">
+     </i>
+    </button>
+    <div class="delete-icon-bubble" id="confirmIcon">
      <i class="ph-duotone ph-trash">
      </i>
     </div>
-    <h2>
-     Delete this trip?
+    <h2 id="confirmTitle">
+     Are you sure?
     </h2>
-    <p>
-     This removes the trip from Planner, Expenses and Checklist too.
+    <p id="confirmMessage">
     </p>
     <div class="delete-modal-actions">
-     <button class="btn soft" onclick="closeModal('deleteTripModal')">
+     <button class="btn soft" onclick="closeModal('confirmModal')">
       Cancel
      </button>
-     <button class="btn danger" onclick="confirmDeleteTrip()">
-      Delete Trip
+     <button class="btn danger" id="confirmAction" onclick="runConfirmAction(this)">
+      Confirm
      </button>
     </div>
    </div>
@@ -296,6 +324,7 @@
   <div class="toast" id="toast">
    Done
   </div>
+  <script src="js/api.js"></script>
   <script src="js/script.js">
   </script>
   <script src="js/auth.js">
