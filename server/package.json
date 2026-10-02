@@ -1,1 +1,14 @@
-
+{
+  "name": "joyjourney",
+  "version": "1.0.0",
+  "description": "JoyJourney group travel planner",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

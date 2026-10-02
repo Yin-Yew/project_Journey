@@ -1,1 +1,228 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Places · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link active" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="page-head">
+<div>
+<span class="eyebrow">
+       Wishlist &amp; voting
+      </span>
+<h1>
+       Places We Love
+      </h1>
+</div>
+<button class="btn primary" onclick="demoToast('Place added to wishlist')">
+<i class="ph-bold ph-plus">
+</i>
+      Add Place
+     </button>
+</section>
+<section class="grid place-grid">
+<article class="card place-card">
+<img alt="Thai beach" class="place-photo" src="https://images.pexels.com/photos/36148825/pexels-photo-36148825.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Ao Phai Beach
+       </h3>
+<p>
+        Beach · Relax
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         12
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Tropical island pier" class="place-photo" src="https://images.pexels.com/photos/14013214/pexels-photo-14013214.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Island Pier
+       </h3>
+<p>
+        Viewpoint · Photo
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         9
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Clear sea and cliffs" class="place-photo" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Snorkeling Spot
+       </h3>
+<p>
+        Activity · Ocean
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         8
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Thailand coastline" class="place-photo" src="https://images.pexels.com/photos/36765742/pexels-photo-36765742.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Sunset Coast
+       </h3>
+<p>
+        Viewpoint · Evening
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         7
+        </span>
+</button>
+</div>
+</article>
+</section>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

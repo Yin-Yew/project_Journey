@@ -1,1 +1,262 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Dashboard · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link active" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="hero">
+<div class="hero-copy">
+<span class="eyebrow">
+       Your next happy trip
+      </span>
+<h1>
+       Hi Yin! Ready for another adventure?
+      </h1>
+<p>
+       Plan the route, collect everyone’s ideas and keep the trip money in one cheerful place.
+      </p>
+<div class="hero-actions">
+<a class="btn primary" href="trips.html">
+<i class="ph-bold ph-plus">
+</i>
+        Create Trip
+       </a>
+<a class="btn soft" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+        Open Planner
+       </a>
+</div>
+</div>
+<div class="hero-photo-wrap">
+<img alt="Tropical beach in Thailand" class="hero-photo" src="https://images.pexels.com/photos/14013214/pexels-photo-14013214.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="hero-badge">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+<span>
+<strong>
+         12 days
+        </strong>
+<small>
+         until Koh Samet
+        </small>
+</span>
+</div>
+</div>
+</section>
+<section class="grid dashboard-grid">
+<a class="card trip-feature clickable-card" href="trip-detail.html">
+<img alt="Tropical Thailand beach" class="mini-trip-photo" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="card-top">
+<span class="pill pink">
+        Upcoming Trip
+       </span>
+<i class="ph-duotone ph-arrow-up-right">
+</i>
+</div>
+<h2>
+       Koh Samet Getaway
+      </h2>
+<p>
+       10–12 Oct 2026 · Rayong
+      </p>
+<div class="avatar-stack">
+<img alt="Yin avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<img alt="Ploy avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Ploy&amp;backgroundColor=d5efff"/>
+<img alt="Book avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Book&amp;backgroundColor=dff2d8"/>
+<img alt="Gun avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Gun&amp;backgroundColor=eee1ff"/>
+</div>
+</a>
+<article class="card stat-card">
+<span class="mini-icon">
+<i class="ph-duotone ph-piggy-bank">
+</i>
+</span>
+<p class="muted">
+       Trip Budget
+      </p>
+<h2>
+       ฿12,000
+      </h2>
+<div class="progress">
+<span style="width:62%">
+</span>
+</div>
+<small>
+       ฿7,450 used
+      </small>
+</article>
+<article class="card stat-card">
+<span class="mini-icon">
+<i class="ph-duotone ph-backpack">
+</i>
+</span>
+<p class="muted">
+       Packing
+      </p>
+<h2>
+       7 / 10
+      </h2>
+<p>
+       Almost ready!
+      </p>
+<a class="text-link" href="checklist.html">
+       Continue packing
+       <i class="ph ph-arrow-right">
+</i>
+</a>
+</article>
+<article class="card stat-card">
+<span class="mini-icon">
+<i class="ph-duotone ph-envelope-simple-open">
+</i>
+</span>
+<p class="muted">
+       You owe
+      </p>
+<h2>
+       ฿600
+      </h2>
+<p>
+       to Ploy for Hotel
+      </p>
+<a class="text-link" href="expenses.html">
+       Settle up
+       <i class="ph ph-arrow-right">
+</i>
+</a>
+</article>
+</section>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

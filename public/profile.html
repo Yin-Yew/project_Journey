@@ -1,1 +1,259 @@
-
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Profile · JoyJourney
+  </title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+  </script>
+  <link href="css/style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div aria-hidden="true" class="ambient">
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-star-four">
+   </i>
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-sparkle">
+   </i>
+  </div>
+  <aside class="sidebar">
+   <a class="brand" href="index.html">
+    <span class="brand-mark">
+     <i class="ph-fill ph-airplane-tilt">
+     </i>
+    </span>
+    <span>
+     JoyJourney
+    </span>
+   </a>
+   <nav>
+    <a class="nav-link" href="index.html">
+     <i class="ph-duotone ph-house">
+     </i>
+     <span>
+      Dashboard
+     </span>
+    </a>
+    <a class="nav-link" href="trips.html">
+     <i class="ph-duotone ph-suitcase-rolling">
+     </i>
+     <span>
+      My Trips
+     </span>
+    </a>
+    <a class="nav-link" href="planner.html">
+     <i class="ph-duotone ph-calendar-dots">
+     </i>
+     <span>
+      Planner
+     </span>
+    </a>
+    <a class="nav-link" href="places.html">
+     <i class="ph-duotone ph-map-pin">
+     </i>
+     <span>
+      Places
+     </span>
+    </a>
+    <a class="nav-link" href="expenses.html">
+     <i class="ph-duotone ph-wallet">
+     </i>
+     <span>
+      Expenses
+     </span>
+    </a>
+    <a class="nav-link" href="checklist.html">
+     <i class="ph-duotone ph-check-square">
+     </i>
+     <span>
+      Checklist
+     </span>
+    </a>
+    <a class="nav-link" href="memories.html">
+     <i class="ph-duotone ph-images">
+     </i>
+     <span>
+      Memories
+     </span>
+    </a>
+    <a class="nav-link" href="settings.html">
+     <i class="ph-duotone ph-gear-six">
+     </i>
+     <span>
+      Settings
+     </span>
+    </a>
+   </nav>
+  </aside>
+  <main class="main">
+   <header class="topbar">
+    <button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+     <i class="ph ph-list">
+     </i>
+    </button>
+    <div class="search">
+     <i class="ph ph-magnifying-glass">
+     </i>
+     <input placeholder="Search your journey..."/>
+    </div>
+    <div class="top-actions">
+     <button aria-label="Notifications" class="icon-btn">
+      <i class="ph-duotone ph-bell">
+      </i>
+      <span class="notification-dot">
+      </span>
+     </button>
+     <a class="user-chip" href="profile.html">
+      <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+      <span>
+       <strong>
+        Yin
+       </strong>
+       <small>
+        Beach Explorer
+       </small>
+      </span>
+      <i class="ph ph-caret-down">
+      </i>
+     </a>
+    </div>
+   </header>
+   <div class="content">
+    <section class="page-head">
+     <div>
+      <span class="eyebrow">
+       Your travel identity
+      </span>
+      <h1>
+       Profile &amp; Payment
+      </h1>
+      <p>
+       Manage your account, avatar and payment details in one place.
+      </p>
+     </div>
+     <button class="btn danger" onclick="authLogout()">
+      <i class="ph ph-sign-out">
+      </i>
+      Logout
+     </button>
+    </section>
+    <section class="profile-layout profile-complete-layout">
+     <article class="card profile-card">
+      <div class="avatar-edit-wrap">
+       <img alt="Profile avatar" class="avatar-xl" id="profileAvatar"/>
+       <button aria-label="Shuffle avatar" class="avatar-shuffle" onclick="shuffleAvatar()" type="button">
+        <i class="ph-duotone ph-arrows-clockwise">
+        </i>
+       </button>
+      </div>
+      <h1 id="profileDisplayName">
+       Yin
+      </h1>
+      <p id="profileHandle">
+       @yin
+      </p>
+      <span class="pill pink" id="profileDisplayStyle">
+       Beach Explorer
+      </span>
+      <button class="btn soft full" onclick="shuffleAvatar()" type="button">
+       <i class="ph-duotone ph-smiley">
+       </i>
+       Shuffle Avatar
+      </button>
+     </article>
+     <form class="card profile-form" id="profileForm" onsubmit="saveProfile(event)">
+      <div class="profile-section-title">
+       <span class="profile-section-icon">
+        <i class="ph-duotone ph-user-circle">
+        </i>
+       </span>
+       <div>
+        <h2>
+         Account
+        </h2>
+        <p>
+         Information shown around JoyJourney.
+        </p>
+       </div>
+      </div>
+      <div class="form-two">
+       <label>
+        Name
+        <input id="profileName" required=""/>
+       </label>
+       <label>
+        Username
+        <input id="profileUsername" required=""/>
+       </label>
+      </div>
+      <label>
+       Email
+       <input id="profileEmail" required="" type="email"/>
+      </label>
+      <label>
+       Travel Style
+       <input id="profileStyle" placeholder="Beach Explorer"/>
+      </label>
+      <div class="profile-section-divider">
+      </div>
+      <div class="profile-section-title">
+       <span class="profile-section-icon mint-bg">
+        <i class="ph-duotone ph-wallet">
+        </i>
+       </span>
+       <div>
+        <h2>
+         Payment Details
+        </h2>
+        <p>
+         Used when friends need to settle expenses with you.
+        </p>
+       </div>
+      </div>
+      <label>
+       PromptPay
+       <input id="profilePromptPay" placeholder="08X-XXX-XXXX"/>
+      </label>
+      <div class="form-two">
+       <label>
+        Bank
+        <input id="profileBankName" placeholder="KBank"/>
+       </label>
+       <label>
+        Bank Account
+        <input id="profileBankAccount" placeholder="XXX-X-XXXXX-X"/>
+       </label>
+      </div>
+      <div class="profile-security-note">
+       <i class="ph-duotone ph-shield-check">
+       </i>
+       <span>
+        This prototype stores profile data only in this browser.
+       </span>
+      </div>
+      <button class="btn primary" type="submit">
+       <i class="ph ph-floppy-disk">
+       </i>
+       Save Profile
+      </button>
+     </form>
+    </section>
+   </div>
+  </main>
+  <div class="toast" id="toast">
+   Done
+  </div>
+  <script src="js/script.js">
+  </script>
+  <script src="js/auth.js">
+  </script>
+ </body>
+</html>

@@ -1,1 +1,81 @@
-
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Register · JoyJourney
+  </title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+  </script>
+  <link href="css/style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div aria-hidden="true" class="ambient">
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-star-four">
+   </i>
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-sparkle">
+   </i>
+  </div>
+  <main class="main auth-main">
+   <div class="content">
+    <section class="auth-wrap">
+     <div class="auth-art">
+      <div class="auth-icon lavender-bg">
+       <i class="ph-duotone ph-confetti">
+       </i>
+      </div>
+      <h1>
+       Start your happy journey
+      </h1>
+      <p>
+       Create an account and invite your travel buddies.
+      </p>
+     </div>
+     <form class="card auth-card" onsubmit="authRegister(event)">
+      <h2>
+       Create account
+      </h2>
+      <label>
+       Name
+       <input id="registerName" placeholder="Yin" required="" type="text"/>
+      </label>
+      <label>
+       Email
+       <input id="registerEmail" placeholder="you@example.com" required="" type="email"/>
+      </label>
+      <label>
+       Password
+       <input id="registerPassword" placeholder="••••••••" required="" type="password"/>
+      </label>
+      <label>
+       Confirm Password
+       <input id="registerConfirmPassword" placeholder="••••••••" required="" type="password"/>
+      </label>
+      <p class="form-message" id="registerMessage">
+      </p>
+      <button class="btn primary full">
+       <i class="ph-bold ph-user-plus">
+       </i>
+       Create Account
+      </button>
+     </form>
+    </section>
+   </div>
+  </main>
+  <div class="toast" id="toast">
+   Done
+  </div>
+  <script src="js/script.js">
+  </script>
+  <script src="js/auth.js">
+  </script>
+ </body>
+</html>

@@ -1,1 +1,331 @@
-
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Expenses · JoyJourney
+  </title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+  </script>
+  <link href="css/style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div aria-hidden="true" class="ambient">
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-star-four">
+   </i>
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-sparkle">
+   </i>
+  </div>
+  <aside class="sidebar">
+   <a class="brand" href="index.html">
+    <span class="brand-mark">
+     <i class="ph-fill ph-airplane-tilt">
+     </i>
+    </span>
+    <span>
+     JoyJourney
+    </span>
+   </a>
+   <nav>
+    <a class="nav-link" href="index.html">
+     <i class="ph-duotone ph-house">
+     </i>
+     <span>
+      Dashboard
+     </span>
+    </a>
+    <a class="nav-link" href="trips.html">
+     <i class="ph-duotone ph-suitcase-rolling">
+     </i>
+     <span>
+      My Trips
+     </span>
+    </a>
+    <a class="nav-link" href="planner.html">
+     <i class="ph-duotone ph-calendar-dots">
+     </i>
+     <span>
+      Planner
+     </span>
+    </a>
+    <a class="nav-link" href="places.html">
+     <i class="ph-duotone ph-map-pin">
+     </i>
+     <span>
+      Places
+     </span>
+    </a>
+    <a class="nav-link active" href="expenses.html">
+     <i class="ph-duotone ph-wallet">
+     </i>
+     <span>
+      Expenses
+     </span>
+    </a>
+    <a class="nav-link" href="checklist.html">
+     <i class="ph-duotone ph-check-square">
+     </i>
+     <span>
+      Checklist
+     </span>
+    </a>
+    <a class="nav-link" href="memories.html">
+     <i class="ph-duotone ph-images">
+     </i>
+     <span>
+      Memories
+     </span>
+    </a>
+    <a class="nav-link" href="settings.html">
+     <i class="ph-duotone ph-gear-six">
+     </i>
+     <span>
+      Settings
+     </span>
+    </a>
+   </nav>
+  </aside>
+  <main class="main">
+   <header class="topbar">
+    <button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+     <i class="ph ph-list">
+     </i>
+    </button>
+    <div class="search">
+     <i class="ph ph-magnifying-glass">
+     </i>
+     <input placeholder="Search your journey..."/>
+    </div>
+    <div class="top-actions">
+     <button aria-label="Notifications" class="icon-btn">
+      <i class="ph-duotone ph-bell">
+      </i>
+      <span class="notification-dot">
+      </span>
+     </button>
+     <a class="user-chip" href="profile.html">
+      <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+      <span>
+       <strong>
+        Yin
+       </strong>
+       <small>
+        Beach Explorer
+       </small>
+      </span>
+      <i class="ph ph-caret-down">
+      </i>
+     </a>
+    </div>
+   </header>
+   <div class="content">
+    <section class="page-head finance-head">
+     <div>
+      <span class="eyebrow">
+       Trip wallet
+      </span>
+      <h1>
+       Expenses &amp; Payments
+      </h1>
+      <p>
+       Every trip has its own expense list, balances and payment activity.
+      </p>
+     </div>
+     <button class="btn primary" onclick="openExpenseModal()">
+      <i class="ph-bold ph-plus">
+      </i>
+      Add Expense
+     </button>
+    </section>
+    <div class="trip-switcher finance-trip-switcher" id="financeTripSwitcher">
+    </div>
+    <div id="financePanels">
+    </div>
+    <div class="modal" id="expenseModal">
+     <form class="modal-box create-trip-box expense-editor" onsubmit="saveExpenseForm(event)">
+      <button class="close" onclick="closeModal('expenseModal')" type="button">
+       <i class="ph ph-x">
+       </i>
+      </button>
+      <span class="eyebrow">
+       Trip money
+      </span>
+      <h2 id="expenseModalTitle">
+       Add Expense
+      </h2>
+      <div class="form-two">
+       <label>
+        Trip
+        <select id="expenseTripSelect">
+        </select>
+       </label>
+       <label>
+        Category
+        <select id="expenseCategory">
+         <option>
+          Stay
+         </option>
+         <option>
+          Food
+         </option>
+         <option>
+          Transport
+         </option>
+         <option>
+          Activity
+         </option>
+         <option>
+          Shopping
+         </option>
+         <option>
+          Other
+         </option>
+        </select>
+       </label>
+      </div>
+      <label>
+       Expense name
+       <input id="expenseTitle" placeholder="Hotel" required=""/>
+      </label>
+      <div class="form-two">
+       <label>
+        Amount
+        <input id="expenseAmount" min="0.01" placeholder="2400" required="" step="0.01" type="number"/>
+       </label>
+       <label>
+        Paid by
+        <select id="expensePaidBy">
+        </select>
+       </label>
+      </div>
+      <div class="expense-form-block">
+       <span class="form-label">
+        Split with
+       </span>
+       <div class="participant-grid" id="expenseParticipants">
+       </div>
+      </div>
+      <label>
+       Split method
+       <select id="expenseSplitType">
+        <option value="equal">
+         Equal
+        </option>
+        <option value="percentage">
+         Percentage
+        </option>
+        <option value="custom">
+         Custom amount
+        </option>
+       </select>
+      </label>
+      <div class="split-detail-fields" id="splitDetailFields">
+      </div>
+      <button class="btn primary full" type="submit">
+       <i class="ph ph-floppy-disk">
+       </i>
+       Save Expense
+      </button>
+     </form>
+    </div>
+    <div class="modal" id="payModal">
+     <div class="modal-box pay-box finance-pay-box">
+      <button class="close" onclick="closeModal('payModal')">
+       <i class="ph ph-x">
+       </i>
+      </button>
+      <div class="pay-title-icon">
+       <i class="ph-duotone ph-wallet">
+       </i>
+      </div>
+      <span class="eyebrow">
+       Settle up
+      </span>
+      <h2>
+       Pay
+       <span id="payRecipient">
+        Friend
+       </span>
+      </h2>
+      <div class="payment-big-amount" id="payAmount">
+       ฿0
+      </div>
+      <div class="payment-code-wrap">
+       <div class="payment-code" id="paymentCode">
+       </div>
+       <span>
+        Demo payment code
+       </span>
+      </div>
+      <div class="payment-detail-row">
+       <div>
+        <small>
+         PromptPay
+        </small>
+        <strong id="payPromptPay">
+         Not added
+        </strong>
+       </div>
+       <button onclick="copyPaymentInfo('promptpay')">
+        <i class="ph ph-copy">
+        </i>
+       </button>
+      </div>
+      <div class="payment-detail-row">
+       <div>
+        <small>
+         Bank
+        </small>
+        <strong id="payBank">
+         Not added
+        </strong>
+       </div>
+       <button onclick="copyPaymentInfo('bank')">
+        <i class="ph ph-copy">
+        </i>
+       </button>
+      </div>
+      <label class="slip-upload">
+       Upload payment slip
+       <input accept="image/*" id="paymentSlip" onchange="previewPaymentSlip(event)" type="file"/>
+      </label>
+      <div class="slip-preview" id="slipPreview">
+       <i class="ph-duotone ph-image-square">
+       </i>
+       <span>
+        No slip selected
+       </span>
+      </div>
+      <button class="btn primary full" onclick="submitPayment()">
+       <i class="ph-duotone ph-paper-plane-tilt">
+       </i>
+       Submit Payment
+      </button>
+      <p class="payment-note">
+       <i class="ph-duotone ph-info">
+       </i>
+       Payment confirmation is manual in this project. The QR shown here is a demo visual, not a bank-generated QR.
+      </p>
+     </div>
+    </div>
+   </div>
+  </main>
+  <div class="toast" id="toast">
+   Done
+  </div>
+  <script src="js/script.js">
+  </script>
+  <script src="js/auth.js">
+  </script>
+  <script src="js/finance.js">
+  </script>
+ </body>
+</html>

@@ -1,1 +1,306 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Memories · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link active" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="page-head playful-head">
+<div>
+<span class="eyebrow">
+       Our scrapbook
+      </span>
+<h1>
+       Trip Memories
+      </h1>
+<p class="page-subtitle">
+       See every photo together, or filter memories by trip.
+      </p>
+</div>
+<button class="btn primary" onclick="demoToast('Memory uploader opened')">
+<i class="ph-bold ph-plus">
+</i>
+      Add Memory
+     </button>
+</section>
+<div aria-label="Filter memories by trip" class="memory-filter" role="group">
+<button class="active" data-filter="all" onclick="filterMemories(this,'all')">
+<i class="ph-duotone ph-images">
+</i>
+      All Photos
+      <span>
+       8
+      </span>
+</button>
+<button data-filter="samet" onclick="filterMemories(this,'samet')">
+      Koh Samet
+      <span>
+       4
+      </span>
+</button>
+<button data-filter="bangkok" onclick="filterMemories(this,'bangkok')">
+      Bangkok Weekend
+      <span>
+       2
+      </span>
+</button>
+<button data-filter="chiangmai" onclick="filterMemories(this,'chiangmai')">
+      Chiang Mai 2025
+      <span>
+       2
+      </span>
+</button>
+</div>
+<section class="memory-wall memory-gallery">
+<article class="polaroid memory-item rotate-left" data-trip="samet" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Thailand beach memory" class="memory-photo" src="https://images.pexels.com/photos/36765742/pexels-photo-36765742.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip pink">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Koh Samet
+       </span>
+</div>
+<p>
+       Sunset with the gang
+      </p>
+</article>
+<article class="polaroid memory-item rotate-right" data-trip="samet" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Beach trip memory" class="memory-photo" src="https://images.pexels.com/photos/36148825/pexels-photo-36148825.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip pink">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Koh Samet
+       </span>
+</div>
+<p>
+       Best beach day
+      </p>
+</article>
+<article class="polaroid memory-item rotate-left" data-trip="samet" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Island pier memory" class="memory-photo" src="https://images.pexels.com/photos/14013214/pexels-photo-14013214.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip pink">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Koh Samet
+       </span>
+</div>
+<p>
+       Boat day together
+      </p>
+</article>
+<article class="polaroid memory-item rotate-right" data-trip="samet" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Clear sea memory" class="memory-photo" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip pink">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Koh Samet
+       </span>
+</div>
+<p>
+       First snorkeling stop
+      </p>
+</article>
+<article class="polaroid memory-item rotate-left" data-trip="bangkok" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Bangkok skyline memory" class="memory-photo" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip mint">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Bangkok Weekend
+       </span>
+</div>
+<p>
+       City lights
+      </p>
+</article>
+<article class="polaroid memory-item rotate-right" data-trip="bangkok" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Cafe memory" class="memory-photo" src="https://images.pexels.com/photos/3732494/pexels-photo-3732494.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip mint">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Bangkok Weekend
+       </span>
+</div>
+<p>
+       Cafe afternoon
+      </p>
+</article>
+<article class="polaroid memory-item rotate-left" data-trip="chiangmai" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Chiang Mai mountain memory" class="memory-photo" src="https://images.pexels.com/photos/35683130/pexels-photo-35683130.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip lavender">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Chiang Mai 2025
+       </span>
+</div>
+<p>
+       Mountain morning
+      </p>
+</article>
+<article class="polaroid memory-item rotate-right" data-trip="chiangmai" onclick="openMemory(this)">
+<div class="memory-frame">
+<img alt="Mountain road memory" class="memory-photo" src="https://images.pexels.com/photos/1659438/pexels-photo-1659438.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="memory-trip lavender">
+<i class="ph-duotone ph-map-pin">
+</i>
+        Chiang Mai 2025
+       </span>
+</div>
+<p>
+       Road trip day
+      </p>
+</article>
+</section>
+<div class="memory-lightbox" id="memoryLightbox" onclick="closeMemory(event)">
+<button class="lightbox-close" onclick="closeMemory(event,true)">
+<i class="ph ph-x">
+</i>
+</button>
+<div class="lightbox-card">
+<img alt="Memory preview" id="lightboxImage"/>
+<div>
+<span class="pill pink" id="lightboxTrip">
+</span>
+<h2 id="lightboxCaption">
+</h2>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

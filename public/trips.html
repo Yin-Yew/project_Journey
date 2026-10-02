@@ -1,1 +1,303 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   My Trips · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link active" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="page-head playful-head">
+<div>
+<span class="eyebrow">
+       Adventure collection
+      </span>
+<h1>
+       My Trips
+      </h1>
+<p class="page-subtitle">
+       Only active and upcoming trips stay here. Finished trips disappear from this list automatically.
+      </p>
+</div>
+<button class="btn primary" onclick="openModal('tripModal')">
+<i class="ph-bold ph-plus">
+</i>
+      Create Trip
+     </button>
+</section>
+<section class="grid trip-grid" id="activeTrips">
+<a class="trip-card-link active-trip" data-end-date="2026-10-12" data-trip-id="samet" href="trip-detail.html?trip=samet">
+<article class="card trip-card">
+<div class="trip-image-wrap">
+<img alt="Tropical beach in Thailand" class="cover-image" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="pill pink trip-status">
+         Upcoming
+        </span>
+</div>
+<div class="trip-card-body">
+<h2>
+         Koh Samet Getaway
+        </h2>
+<p>
+<i class="ph-duotone ph-calendar-blank">
+</i>
+         10–12 Oct 2026
+        </p>
+<p>
+<i class="ph-duotone ph-users-three">
+</i>
+         Yin, Ploy, Book, Gun
+        </p>
+<span class="card-enter">
+<i class="ph ph-arrow-up-right">
+</i>
+</span>
+</div>
+</article>
+</a>
+<a class="trip-card-link active-trip" data-end-date="2026-11-29" data-trip-id="bkk" href="trip-detail.html?trip=bkk">
+<article class="card trip-card">
+<div class="trip-image-wrap">
+<img alt="Bangkok skyline" class="cover-image" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="pill mint trip-status">
+         Planning
+        </span>
+</div>
+<div class="trip-card-body">
+<h2>
+         Bangkok Weekend
+        </h2>
+<p>
+<i class="ph-duotone ph-calendar-blank">
+</i>
+         28–29 Nov 2026
+        </p>
+<p>
+<i class="ph-duotone ph-users-three">
+</i>
+         Yin, Ploy, Book, Gun
+        </p>
+<span class="card-enter">
+<i class="ph ph-arrow-up-right">
+</i>
+</span>
+</div>
+</article>
+</a>
+<a class="trip-card-link active-trip" data-end-date="2025-12-15" data-trip-id="chiangmai" href="trip-detail.html?trip=chiangmai">
+<article class="card trip-card">
+<div class="trip-image-wrap">
+<img alt="Chiang Mai mountain view" class="cover-image" src="https://images.pexels.com/photos/35683130/pexels-photo-35683130.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<span class="pill lavender trip-status">
+         Finished
+        </span>
+</div>
+<div class="trip-card-body">
+<h2>
+         Chiang Mai 2025
+        </h2>
+<p>
+<i class="ph-duotone ph-check-circle">
+</i>
+         Completed
+        </p>
+<p>
+<i class="ph-duotone ph-images">
+</i>
+         Kept in Memories
+        </p>
+</div>
+</article>
+</a>
+</section>
+<div class="empty-state" hidden="" id="tripEmpty">
+<i class="ph-duotone ph-suitcase">
+</i>
+<h2>
+      No active trips
+     </h2>
+<p>
+      Create a new journey and invite your friends.
+     </p>
+</div>
+<div class="modal" id="tripModal">
+<div class="modal-box create-trip-box">
+<button class="close" onclick="closeModal('tripModal')">
+<i class="ph ph-x">
+</i>
+</button>
+<h2>
+       Create a trip
+      </h2>
+<label class="cover-upload" for="tripCover">
+<div class="cover-preview" id="coverPreview">
+<i class="ph-duotone ph-image-square">
+</i>
+<span>
+         Choose trip cover
+        </span>
+<small>
+         JPG or PNG
+        </small>
+</div>
+<input accept="image/*" id="tripCover" onchange="previewTripCover(event)" type="file"/>
+</label>
+<label>
+       Trip name
+       <input id="tripName" placeholder="Hua Hin Weekend"/>
+</label>
+<label>
+       Destination
+       <input id="tripDestination" placeholder="Hua Hin"/>
+</label>
+<div class="form-two">
+<label>
+        Start date
+        <input id="tripStart" type="date"/>
+</label>
+<label>
+        End date
+        <input id="tripEnd" type="date"/>
+</label>
+</div>
+<label>
+       Budget
+       <input id="tripBudget" placeholder="12000" type="number"/>
+</label>
+<button class="btn primary full" onclick="createTrip()">
+<i class="ph-bold ph-sparkle">
+</i>
+       Create Trip
+      </button>
+</div>
+</div>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

@@ -1,1 +1,291 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Checklist · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link active" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="page-head playful-head">
+<div>
+<span class="eyebrow">
+       Pack together
+      </span>
+<h1>
+       Packing Checklist
+      </h1>
+<p class="page-subtitle">
+       Each trip has its own packing list.
+      </p>
+</div>
+<button class="btn primary" onclick="addChecklist()">
+<i class="ph-bold ph-plus">
+</i>
+      Add Item
+     </button>
+</section>
+<div class="trip-switcher" data-trip-group="checklist">
+<button class="trip-switch active active-trip" data-end-date="2026-10-12" data-target="check-samet" data-trip-id="samet" onclick="switchTripPanel(this,'checklist')">
+<img alt="Koh Samet" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
+<span>
+<strong>
+        Koh Samet
+       </strong>
+<small>
+        3 of 5 packed
+       </small>
+</span>
+<i class="ph ph-caret-right">
+</i>
+</button>
+<button class="trip-switch active-trip" data-end-date="2026-11-29" data-target="check-bkk" data-trip-id="bkk" onclick="switchTripPanel(this,'checklist')">
+<img alt="Bangkok" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
+<span>
+<strong>
+        Bangkok Weekend
+       </strong>
+<small>
+        2 of 4 packed
+       </small>
+</span>
+<i class="ph ph-caret-right">
+</i>
+</button>
+</div>
+<section class="trip-panel active" data-trip-id="samet" data-trip-panel="checklist" id="check-samet">
+<div class="trip-section-head">
+<div>
+<span class="pill pink">
+        Koh Samet Getaway
+       </span>
+<h2>
+        Beach Packing
+       </h2>
+</div>
+<span class="trip-date">
+       10–12 Oct 2026
+      </span>
+</div>
+<section class="card checklist" id="checklist">
+<label>
+<input checked="" type="checkbox"/>
+<span>
+<i class="ph-duotone ph-camera">
+</i>
+        Camera
+       </span>
+</label>
+<label>
+<input checked="" type="checkbox"/>
+<span>
+<i class="ph-duotone ph-plug">
+</i>
+        Charger
+       </span>
+</label>
+<label>
+<input type="checkbox"/>
+<span>
+<i class="ph-duotone ph-sun">
+</i>
+        Sunscreen
+       </span>
+</label>
+<label>
+<input type="checkbox"/>
+<span>
+<i class="ph-duotone ph-baseball-cap">
+</i>
+        Hat
+       </span>
+</label>
+<label>
+<input checked="" type="checkbox"/>
+<span>
+<i class="ph-duotone ph-sneaker">
+</i>
+        Sandals
+       </span>
+</label>
+</section>
+</section>
+<section class="trip-panel" data-trip-id="bkk" data-trip-panel="checklist" id="check-bkk">
+<div class="trip-section-head">
+<div>
+<span class="pill mint">
+        Bangkok Weekend
+       </span>
+<h2>
+        City Packing
+       </h2>
+</div>
+<span class="trip-date">
+       28–29 Nov 2026
+      </span>
+</div>
+<section class="card checklist">
+<label>
+<input checked="" type="checkbox"/>
+<span>
+<i class="ph-duotone ph-camera">
+</i>
+        Camera
+       </span>
+</label>
+<label>
+<input type="checkbox"/>
+<span>
+<i class="ph-duotone ph-battery-charging">
+</i>
+        Power bank
+       </span>
+</label>
+<label>
+<input checked="" type="checkbox"/>
+<span>
+<i class="ph-duotone ph-umbrella">
+</i>
+        Umbrella
+       </span>
+</label>
+<label>
+<input type="checkbox"/>
+<span>
+<i class="ph-duotone ph-shopping-bag">
+</i>
+        Tote bag
+       </span>
+</label>
+</section>
+</section>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

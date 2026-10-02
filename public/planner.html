@@ -1,1 +1,337 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Planner · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link active" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content">
+<section class="page-head playful-head">
+<div>
+<span class="eyebrow">
+       Daily itinerary
+      </span>
+<h1>
+       Trip Planner
+      </h1>
+<p class="page-subtitle">
+       Choose a trip first, then build each day separately.
+      </p>
+</div>
+<button class="btn primary" onclick="addActivity()">
+<i class="ph-bold ph-plus">
+</i>
+      Add Activity
+     </button>
+</section>
+<div class="trip-switcher" data-trip-group="planner">
+<button class="trip-switch active active-trip" data-end-date="2026-10-12" data-target="planner-samet" data-trip-id="samet" onclick="switchTripPanel(this,'planner')">
+<img alt="Koh Samet" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
+<span>
+<strong>
+        Koh Samet
+       </strong>
+<small>
+        10–12 Oct
+       </small>
+</span>
+<i class="ph ph-caret-right">
+</i>
+</button>
+<button class="trip-switch active-trip" data-end-date="2026-11-29" data-target="planner-bkk" data-trip-id="bkk" onclick="switchTripPanel(this,'planner')">
+<img alt="Bangkok" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=300"/>
+<span>
+<strong>
+        Bangkok Weekend
+       </strong>
+<small>
+        28–29 Nov
+       </small>
+</span>
+<i class="ph ph-caret-right">
+</i>
+</button>
+</div>
+<section class="trip-panel active" data-trip-id="samet" data-trip-panel="planner" id="planner-samet">
+<div class="trip-section-head">
+<div>
+<span class="pill pink">
+        Koh Samet Getaway
+       </span>
+<h2>
+        Itinerary
+       </h2>
+</div>
+<span class="trip-date">
+<i class="ph-duotone ph-calendar">
+</i>
+       10–12 Oct 2026
+      </span>
+</div>
+<div class="day-tabs">
+<button class="active">
+       Day 1
+      </button>
+<button>
+       Day 2
+      </button>
+<button>
+       Day 3
+      </button>
+</div>
+<section class="timeline" id="timeline">
+<article class="timeline-item">
+<time>
+        09:00
+       </time>
+<div class="card activity">
+<span class="activity-icon blue">
+<i class="ph-duotone ph-bus">
+</i>
+</span>
+<div>
+<h3>
+          Meet at Mo Chit
+         </h3>
+<p>
+          Travel to Ban Phe Pier
+         </p>
+</div>
+</div>
+</article>
+<article class="timeline-item">
+<time>
+        12:30
+       </time>
+<div class="card activity">
+<span class="activity-icon yellow">
+<i class="ph-duotone ph-bowl-food">
+</i>
+</span>
+<div>
+<h3>
+          Lunch by the pier
+         </h3>
+<p>
+          Quick meal before ferry
+         </p>
+</div>
+</div>
+</article>
+<article class="timeline-item">
+<time>
+        15:00
+       </time>
+<div class="card activity">
+<span class="activity-icon pink">
+<i class="ph-duotone ph-umbrella">
+</i>
+</span>
+<div>
+<h3>
+          Ao Phai Beach
+         </h3>
+<p>
+          Swim, relax and photos
+         </p>
+</div>
+</div>
+</article>
+</section>
+</section>
+<section class="trip-panel" data-trip-id="bkk" data-trip-panel="planner" id="planner-bkk">
+<div class="trip-section-head">
+<div>
+<span class="pill mint">
+        Bangkok Weekend
+       </span>
+<h2>
+        Itinerary
+       </h2>
+</div>
+<span class="trip-date">
+<i class="ph-duotone ph-calendar">
+</i>
+       28–29 Nov 2026
+      </span>
+</div>
+<div class="day-tabs">
+<button class="active">
+       Day 1
+      </button>
+<button>
+       Day 2
+      </button>
+</div>
+<section class="timeline">
+<article class="timeline-item">
+<time>
+        10:00
+       </time>
+<div class="card activity">
+<span class="activity-icon lavender">
+<i class="ph-duotone ph-coffee">
+</i>
+</span>
+<div>
+<h3>
+          Cafe hopping
+         </h3>
+<p>
+          Ari neighborhood
+         </p>
+</div>
+</div>
+</article>
+<article class="timeline-item">
+<time>
+        17:30
+       </time>
+<div class="card activity">
+<span class="activity-icon blue">
+<i class="ph-duotone ph-buildings">
+</i>
+</span>
+<div>
+<h3>
+          River walk
+         </h3>
+<p>
+          Sunset by Chao Phraya
+         </p>
+</div>
+</div>
+</article>
+</section>
+</section>
+</div>
+</main>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script></body>
+</html>

@@ -1,1 +1,82 @@
-
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Login · JoyJourney
+  </title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+  </script>
+  <link href="css/style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div aria-hidden="true" class="ambient">
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-star-four">
+   </i>
+   <i class="ph-fill ph-cloud">
+   </i>
+   <i class="ph-fill ph-sparkle">
+   </i>
+  </div>
+  <main class="main auth-main">
+   <div class="content">
+    <section class="auth-wrap">
+     <div class="auth-art">
+      <div class="auth-icon">
+       <i class="ph-duotone ph-airplane-tilt">
+       </i>
+      </div>
+      <h1>
+       Welcome back!
+      </h1>
+      <p>
+       Your friends and your next trip are waiting.
+      </p>
+     </div>
+     <form class="card auth-card" onsubmit="authLogin(event)">
+      <h2>
+       Login to JoyJourney
+      </h2>
+      <label>
+       Email
+       <input id="loginEmail" required="" type="email" value="yin@example.com"/>
+      </label>
+      <label>
+       Password
+       <input id="loginPassword" required="" type="password" value="password123"/>
+      </label>
+      <p class="form-message" id="loginMessage">
+      </p>
+      <button class="btn primary full">
+       <i class="ph-bold ph-sign-in">
+       </i>
+       Login
+      </button>
+      <p class="center muted">
+       New here?
+       <a href="register.html">
+        Create an account
+       </a>
+      </p>
+      <p class="demo-login-note">
+       Demo accounts: yin@example.com / ploy@example.com / book@example.com / gun@example.com · password123
+      </p>
+     </form>
+    </section>
+   </div>
+  </main>
+  <div class="toast" id="toast">
+   Done
+  </div>
+  <script src="js/script.js">
+  </script>
+  <script src="js/auth.js">
+  </script>
+ </body>
+</html>
