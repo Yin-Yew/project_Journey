@@ -834,7 +834,7 @@ function renderTripDetail() {
 
   if (budget) budget.textContent = `฿${Number(trip.budget || 0).toLocaleString()}`;
   if (activities) activities.textContent = stats.activities;
-  if (packing) packing.textContent = `${stats.packingPercent}%`;
+  if (packing) packing.textContent = `${stats.packingPercent}% (${stats.packed}/${stats.packingTotal})`;
   if (statusText) statusText.textContent = trip.status === "finished" ? "Finished" : "Active";
 
   const links = {
