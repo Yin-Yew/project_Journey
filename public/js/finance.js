@@ -37,51 +37,33 @@ function createFinanceExpense(id, title, amount, paidBy, participants, splitType
   };
 }
 
-function getFinanceData() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(JJ_FINANCE_KEY) || "null");
-    if (saved && saved.version === JJ_FINANCE_VERSION) {
-      return saved;
-    }
-  } catch {}
-  const seeded = financeSeedData();
-  saveFinanceData(seeded);
-  return seeded;
-}
-
-function saveFinanceData(data) {
-  localStorage.setItem(JJ_FINANCE_KEY, JSON.stringify(data));
-}
-
-function getAllActiveTripsForFinance() {
-  const deleted = typeof getDeletedTripIds === "function" ? getDeletedTripIds() : [];
-  const defaults = typeof DEFAULT_TRIPS !== "undefined" ? Object.values(DEFAULT_TRIPS) : [];
-  const stored = typeof getStoredTrips === "function" ? getStoredTrips() : [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return [...defaults, ...stored].filter((trip) => {
-    if (deleted.includes(trip.id)) {
-      return false;
-    }
-    const endDate = new Date(`${trip.endDate}T23:59:59`);
-    return endDate >= today;
+// In-memory cache populated exclusively from the authenticated MySQL API.
+const databaseFinance = {version: JJ_FINANCE_VERSION,expenses:{},payments:[]};
+function getFinanceData(){return databaseFinance;}
+function saveFinanceData(){throw new Error('Finance data must be saved through the server API.');}
+async function loadFinanceFromDatabase(){
+  databaseFinance.expenses={};databaseFinance.payments=[];
+  const results=await Promise.all(getStoredTrips().map(t=>apiRequest(`/api/trips/${t.id}/finance`)));
+  getStoredTrips().forEach((trip,index)=>{
+    databaseFinance.expenses[trip.id]=results[index].expenses||[];
+    databaseFinance.payments.push(...(results[index].payments||[]));
   });
+}
+function financeMemberList(tripId){return (tripDetailsCache[tripId]?.members||[]).map(m=>({...m,avatar:m.avatar||avatarUrl(m.name)}));}
+function financeReadonly(tripId){return getTripById(tripId)?.status==='finished';}
+function getAllActiveTripsForFinance() {
+  return typeof getStoredTrips === "function" ? getStoredTrips() : [];
 }
 
 function getFinanceMembers() {
   if (typeof getJoyMembers === "function") {
     return getJoyMembers();
   }
-  return [
-    { id: "yin", name: "Yin" },
-    { id: "ploy", name: "Ploy" },
-    { id: "book", name: "Book" },
-    { id: "gun", name: "Gun" }
-  ];
+  return [];
 }
 
 function memberById(id) {
-  return getFinanceMembers().find((member) => member.id === id) || { id, name: id, avatar: "" };
+  return (Object.values(tripDetailsCache).flatMap(x=>x.members||[]).find(member=>String(member.id)===String(id))||getFinanceMembers().find(member=>String(member.id)===String(id))) || {id, name: id, avatar:""};
 }
 
 function money(value) {
@@ -137,7 +119,7 @@ function normalizeShareRemainder(shares, participants, amount) {
 }
 
 function computeTripBalances(tripId) {
-  const balances = Object.fromEntries(getFinanceMembers().map((member) => [member.id, 0]));
+  const balances = Object.fromEntries(financeMemberList(tripId).map((member) => [member.id, 0]));
   getTripExpenses(tripId).forEach((expense) => {
     const amount = Number(expense.amount || 0);
     balances[expense.paidBy] = roundMoney((balances[expense.paidBy] || 0) + amount);
@@ -187,7 +169,7 @@ function isSettlementCompleted(settlement) {
 }
 
 function financeSummary(tripId) {
-  const currentUserId = typeof getCurrentUserId === "function" ? getCurrentUserId() || "yin" : "yin";
+  const currentUserId = typeof getCurrentUserId === "function" ? getCurrentUserId() : "";
   const expenses = getTripExpenses(tripId);
   const total = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
   const paid = expenses.filter((expense) => expense.paidBy === currentUserId).reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
@@ -201,7 +183,7 @@ function financeTripSwitch(trip, active) {
   const summary = financeSummary(trip.id);
   return `
     <button class="trip-switch ${active ? "active" : ""}" data-finance-trip="${escapeHTML(trip.id)}" onclick="selectFinanceTrip('${escapeHTML(trip.id)}')">
-      <img src="${trip.cover}" alt="${escapeHTML(trip.name)}">
+      <img src="${escapeHTML(trip.cover)}" alt="${escapeHTML(trip.name)}">
       <span><strong>${escapeHTML(trip.name)}</strong><small>${money(summary.total)} spent</small></span>
       <i class="ph ph-caret-right"></i>
     </button>
@@ -276,8 +258,8 @@ function expenseRows(tripId, expenses) {
         <div><strong>${escapeHTML(expense.title)}</strong><p>Paid by ${escapeHTML(payer.name)} · ${splitLabel}</p></div>
         <strong>${money(expense.amount)}</strong>
         <div class="expense-actions">
-          <button aria-label="Edit expense" onclick="editExpense('${escapeHTML(tripId)}','${escapeHTML(expense.id)}')"><i class="ph ph-pencil-simple"></i></button>
-          <button aria-label="Delete expense" class="danger-icon" onclick="deleteExpense('${escapeHTML(tripId)}','${escapeHTML(expense.id)}')"><i class="ph ph-trash"></i></button>
+          <button ${financeReadonly(tripId)?'disabled title="Reopen trip to edit"':''} aria-label="Edit expense" onclick="editExpense('${escapeHTML(tripId)}','${escapeHTML(expense.id)}')"><i class="ph ph-pencil-simple"></i></button>
+          <button ${financeReadonly(tripId)?'disabled title="Reopen trip to delete"':''} aria-label="Delete expense" class="danger-icon" onclick="deleteExpense('${escapeHTML(tripId)}','${escapeHTML(expense.id)}')"><i class="ph ph-trash"></i></button>
         </div>
       </div>
     `;
@@ -285,7 +267,7 @@ function expenseRows(tripId, expenses) {
 }
 
 function settlementCards(tripId) {
-  const currentUserId = typeof getCurrentUserId === "function" ? getCurrentUserId() || "yin" : "yin";
+  const currentUserId = typeof getCurrentUserId === "function" ? getCurrentUserId() : "";
   const settlements = computeSettlements(tripId).filter((settlement) => !isSettlementCompleted(settlement));
 
   if (!settlements.length) {
@@ -360,6 +342,9 @@ function populateExpenseTripSelect(trips, selectedTrip) {
 }
 
 function openExpenseModal() {
+  const selectedTrip=document.querySelector("[data-finance-trip].active")?.dataset.financeTrip;
+  if(!selectedTrip){demoToast("Create a trip first");return;}
+  if(financeReadonly(selectedTrip)){demoToast("Reopen this trip to add expenses");return;}
   currentExpenseEditId = "";
   const title = document.getElementById("expenseModalTitle");
   if (title) title.textContent = "Add Expense";
@@ -377,7 +362,8 @@ function renderExpenseParticipants(selectedParticipants, savedShares = {}) {
   const box = document.getElementById("expenseParticipants");
   const payer = document.getElementById("expensePaidBy");
   if (!box || !payer) return;
-  const members = getFinanceMembers();
+  const tripId=document.getElementById("expenseTripSelect")?.value||"";
+  const members=financeMemberList(tripId);
   const selected = selectedParticipants || members.map((member) => member.id);
   payer.innerHTML = members.map((member) => `<option value="${member.id}">${escapeHTML(member.name)}</option>`).join("");
   box.innerHTML = members.map((member) => `
@@ -430,7 +416,7 @@ function collectExpenseShares(type, participants) {
   return shares;
 }
 
-function saveExpenseForm(event) {
+async function saveExpenseForm(event) {
   event?.preventDefault();
   const tripId = document.getElementById("expenseTripSelect")?.value || "";
   const title = document.getElementById("expenseTitle")?.value.trim() || "";
@@ -440,49 +426,22 @@ function saveExpenseForm(event) {
   const splitType = document.getElementById("expenseSplitType")?.value || "equal";
   const participants = selectedExpenseParticipants();
   const shares = collectExpenseShares(splitType, participants);
-
-  if (!tripId || !title || amount <= 0 || !paidBy || !participants.length) {
-    demoToast("Complete all expense details");
-    return;
-  }
-
-  if (splitType === "percentage") {
-    const totalPercent = roundMoney(Object.values(shares).reduce((sum, value) => sum + Number(value), 0));
-    if (Math.abs(totalPercent - 100) > 0.05) {
-      demoToast("Percentages must total 100%");
-      return;
-    }
-  }
-
-  if (splitType === "custom") {
-    const totalCustom = roundMoney(Object.values(shares).reduce((sum, value) => sum + Number(value), 0));
-    if (Math.abs(totalCustom - amount) > 0.05) {
-      demoToast("Custom amounts must equal the expense total");
-      return;
-    }
-  }
-
-  const data = getFinanceData();
-  data.expenses[tripId] = data.expenses[tripId] || [];
-  const expense = createFinanceExpense(currentExpenseEditId || `expense-${Date.now()}`, title, amount, paidBy, participants, splitType, shares, category);
-  const index = data.expenses[tripId].findIndex((item) => item.id === currentExpenseEditId);
-  if (index >= 0) {
-    expense.createdAt = data.expenses[tripId][index].createdAt;
-    data.expenses[tripId][index] = expense;
-  } else {
-    data.expenses[tripId].push(expense);
-  }
-  saveFinanceData(data);
-  currentExpenseEditId = "";
-  closeModal("expenseModal");
-  renderFinancePage();
-  selectFinanceTrip(tripId);
-  demoToast(index >= 0 ? "Expense updated" : "Expense added");
+  if (!tripId || !title || amount <= 0 || !paidBy || !participants.length) {demoToast("Complete all expense details");return;}
+  if(financeReadonly(tripId)){demoToast("This trip is finished");return;}
+  if(splitType==="percentage" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-100)>0.05){demoToast("Percentages must add to 100%");return;}
+  if(splitType==="custom" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-amount)>0.01){demoToast("Custom shares must equal the total");return;}
+  const data={title,amount,paidBy,category,splitType,participants,shares};
+  const editId=currentExpenseEditId;
+  try{
+    await apiJson(`/api/trips/${tripId}/expenses${editId?`/${editId}`:''}`,editId?'PUT':'POST',data);
+    await loadFinanceFromDatabase();currentExpenseEditId="";closeModal("expenseModal");renderFinancePage();selectFinanceTrip(tripId);
+    demoToast(editId?"Expense updated":"Expense added");
+  }catch(e){demoToast(e.message);}
 }
 
 function editExpense(tripId, expenseId) {
   const expense = getTripExpenses(tripId).find((item) => item.id === expenseId);
-  if (!expense) return;
+  if (!expense || financeReadonly(tripId)) return;
   currentExpenseEditId = expense.id;
   document.getElementById("expenseModalTitle").textContent = "Edit Expense";
   document.getElementById("expenseTripSelect").value = tripId;
@@ -496,14 +455,10 @@ function editExpense(tripId, expenseId) {
   openModal("expenseModal");
 }
 
-function deleteExpense(tripId, expenseId) {
-  if (!confirm("Delete this expense?")) return;
-  const data = getFinanceData();
-  data.expenses[tripId] = (data.expenses[tripId] || []).filter((expense) => expense.id !== expenseId);
-  saveFinanceData(data);
-  renderFinancePage();
-  selectFinanceTrip(tripId);
-  demoToast("Expense deleted");
+async function deleteExpense(tripId, expenseId) {
+  if(financeReadonly(tripId)||!confirm("Delete this expense?"))return;
+  try{await apiRequest(`/api/trips/${tripId}/expenses/${expenseId}`,{method:'DELETE'});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(tripId);demoToast("Expense deleted");}
+  catch(e){demoToast(e.message);}
 }
 
 function openFinancePayment(tripId, from, to, amount) {
@@ -521,18 +476,7 @@ function openFinancePayment(tripId, from, to, amount) {
 }
 
 function renderDemoPaymentCode(recipient, amount) {
-  const box = document.getElementById("paymentCode");
-  if (!box) return;
-  const source = `${recipient.id}-${amount}-${recipient.promptpay || "demo"}`;
-  let cells = "";
-  for (let row = 0; row < 13; row += 1) {
-    for (let column = 0; column < 13; column += 1) {
-      const char = source.charCodeAt((row * 13 + column) % source.length) || 1;
-      const on = (char + row * 7 + column * 11) % 3 !== 0;
-      cells += `<span class="${on ? "on" : ""}"></span>`;
-    }
-  }
-  box.innerHTML = cells;
+ const box=document.getElementById("paymentCode");if(box){box.innerHTML='<p class="muted">Use your bank app and the payment details below. This app does not generate a bank QR code.</p>';box.classList.add('payment-code-message');}
 }
 
 function copyPaymentInfo(type) {
@@ -568,51 +512,24 @@ async function previewPaymentSlip(event) {
   }
 }
 
-function submitPayment() {
-  if (!activePayment) return;
-  const data = getFinanceData();
-  const settlement = { ...activePayment };
-  const key = settlementKey(settlement);
-  const existing = data.payments.find((payment) => payment.key === key && payment.status !== "cancelled");
-  if (existing) {
-    existing.status = "pending";
-    existing.slip = paymentSlipData || existing.slip || "";
-    existing.updatedAt = new Date().toISOString();
-  } else {
-    data.payments.push({
-      id: `payment-${Date.now()}`,
-      key,
-      ...settlement,
-      slip: paymentSlipData,
-      status: "pending",
-      createdAt: new Date().toISOString()
-    });
-  }
-  saveFinanceData(data);
-  closeModal("payModal");
-  const tripId = activePayment.tripId;
-  activePayment = null;
-  renderFinancePage();
-  selectFinanceTrip(tripId);
-  demoToast("Payment submitted for confirmation");
+async function submitPayment() {
+  if(!activePayment)return;
+  const payment={...activePayment};
+  if(String(payment.from)!==String(getCurrentUserId())){demoToast('Only the payer can submit a payment');return;}
+  try{await apiJson(`/api/trips/${payment.tripId}/payments`,'POST',{...payment,slip:paymentSlipData});
+    await loadFinanceFromDatabase();closeModal('payModal');activePayment=null;renderFinancePage();selectFinanceTrip(payment.tripId);demoToast('Payment submitted for confirmation');
+  }catch(e){demoToast(e.message);}
 }
-
-function verifyPayment(paymentId) {
-  const data = getFinanceData();
-  const payment = data.payments.find((item) => item.id === paymentId);
-  if (!payment) return;
-  payment.status = "paid";
-  payment.verifiedAt = new Date().toISOString();
-  saveFinanceData(data);
-  renderFinancePage();
-  selectFinanceTrip(payment.tripId);
-  demoToast("Payment confirmed");
+async function verifyPayment(paymentId) {
+ const payment=getFinanceData().payments.find(p=>p.id===String(paymentId));if(!payment)return;
+ try{await apiJson(`/api/trips/${payment.tripId}/payments/${payment.id}/verify`,'PATCH',{});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(payment.tripId);demoToast('Payment confirmed');}
+ catch(e){demoToast(e.message);}
 }
 
 function updateFinanceOverview() {
   const element = document.getElementById("tripExpenseDetail");
   if (!element) return;
-  const tripId = new URLSearchParams(location.search).get("trip") || "samet";
+  const tripId = new URLSearchParams(location.search).get("trip") || getStoredTrips()[0]?.id || "";
   element.textContent = money(financeSummary(tripId).total);
 }
 
@@ -620,5 +537,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderFinancePage();
   document.getElementById("expenseAmount")?.addEventListener("input", () => renderSplitFields());
   document.getElementById("expenseSplitType")?.addEventListener("change", () => renderSplitFields());
-  document.getElementById("expenseTripSelect")?.addEventListener("change", () => selectFinanceTrip(document.getElementById("expenseTripSelect").value));
+  document.getElementById("expenseTripSelect")?.addEventListener("change", () => {selectFinanceTrip(document.getElementById("expenseTripSelect").value);renderExpenseParticipants();});
 });

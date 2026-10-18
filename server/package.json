@@ -5,10 +5,15 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node app.js"
+    "dev": "node app.js",
+    "test": "node --test ../tests/*.test.js",
+    "migrate:checklist": "node migrate-checklist.js"
   },
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "mysql2": "^3.15.3",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.6.1"
   }
 }

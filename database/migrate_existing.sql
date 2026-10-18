@@ -1,0 +1,21 @@
+USE joyjourney;
+ALTER TABLE trips ADD COLUMN status ENUM('active','finished') NOT NULL DEFAULT 'active';
+CREATE TABLE IF NOT EXISTS auth_sessions (token_hash CHAR(64) PRIMARY KEY, user_id INT NOT NULL, expires_at DATETIME NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS trip_modules (trip_id INT PRIMARY KEY, module_data JSON NOT NULL, FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE);
+
+
+-- v2: Memories are retained when a trip is marked finished.
+CREATE TABLE IF NOT EXISTS memories (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ trip_id INT NOT NULL,
+ uploaded_by INT NOT NULL,
+ caption VARCHAR(300) NOT NULL,
+ filename VARCHAR(80) NOT NULL UNIQUE,
+ mime_type VARCHAR(30) NOT NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+ FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE trips MODIFY COLUMN cover_url MEDIUMTEXT;
+ALTER TABLE payments MODIFY COLUMN slip_url MEDIUMTEXT;

@@ -6,3 +6,12 @@ server/.env
 Thumbs.db
 uploads/*
 !uploads/.gitkeep
+
+.env
+.env.*
+!.env.example
+
+node_modules/
+
+uploads/*
+!uploads/.gitkeep

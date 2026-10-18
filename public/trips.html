@@ -64,6 +64,7 @@
       Places
      </span>
 </a>
+<a class="nav-link" href="voting.html"><i class="ph-duotone ph-chart-bar"></i><span>Next Trip Vote</span></a>
 <a class="nav-link" href="expenses.html">
 <i class="ph-duotone ph-wallet">
 </i>
@@ -106,12 +107,7 @@
 <input placeholder="Search your journey..."/>
 </div>
 <div class="top-actions">
-<button aria-label="Notifications" class="icon-btn">
-<i class="ph-duotone ph-bell">
-</i>
-<span class="notification-dot">
-</span>
-</button>
+<a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
 <a class="user-chip" href="profile.html">
 <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
 <span>
@@ -137,7 +133,7 @@
        My Trips
       </h1>
 <p class="page-subtitle">
-       Only active and upcoming trips stay here. Finished trips disappear from this list automatically.
+       Your active and finished trips appear here, loaded from your account.
       </p>
 </div>
 <button class="btn primary" onclick="openModal('tripModal')">
@@ -146,96 +142,12 @@
       Create Trip
      </button>
 </section>
-<section class="grid trip-grid" id="activeTrips">
-<a class="trip-card-link active-trip" data-end-date="2026-10-12" data-trip-id="samet" href="trip-detail.html?trip=samet">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Tropical beach in Thailand" class="cover-image" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill pink trip-status">
-         Upcoming
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Koh Samet Getaway
-        </h2>
-<p>
-<i class="ph-duotone ph-calendar-blank">
-</i>
-         10–12 Oct 2026
-        </p>
-<p>
-<i class="ph-duotone ph-users-three">
-</i>
-         Yin, Ploy, Book, Gun
-        </p>
-<span class="card-enter">
-<i class="ph ph-arrow-up-right">
-</i>
-</span>
-</div>
-</article>
-</a>
-<a class="trip-card-link active-trip" data-end-date="2026-11-29" data-trip-id="bkk" href="trip-detail.html?trip=bkk">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Bangkok skyline" class="cover-image" src="https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill mint trip-status">
-         Planning
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Bangkok Weekend
-        </h2>
-<p>
-<i class="ph-duotone ph-calendar-blank">
-</i>
-         28–29 Nov 2026
-        </p>
-<p>
-<i class="ph-duotone ph-users-three">
-</i>
-         Yin, Ploy, Book, Gun
-        </p>
-<span class="card-enter">
-<i class="ph ph-arrow-up-right">
-</i>
-</span>
-</div>
-</article>
-</a>
-<a class="trip-card-link active-trip" data-end-date="2025-12-15" data-trip-id="chiangmai" href="trip-detail.html?trip=chiangmai">
-<article class="card trip-card">
-<div class="trip-image-wrap">
-<img alt="Chiang Mai mountain view" class="cover-image" src="https://images.pexels.com/photos/35683130/pexels-photo-35683130.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
-<span class="pill lavender trip-status">
-         Finished
-        </span>
-</div>
-<div class="trip-card-body">
-<h2>
-         Chiang Mai 2025
-        </h2>
-<p>
-<i class="ph-duotone ph-check-circle">
-</i>
-         Completed
-        </p>
-<p>
-<i class="ph-duotone ph-images">
-</i>
-         Kept in Memories
-        </p>
-</div>
-</article>
-</a>
-</section>
+<section class="grid trip-grid" id="activeTrips" aria-live="polite"></section>
 <div class="empty-state" hidden="" id="tripEmpty">
 <i class="ph-duotone ph-suitcase">
 </i>
 <h2>
-      No active trips
+      No trips yet
      </h2>
 <p>
       Create a new journey and invite your friends.
@@ -299,5 +211,6 @@
   </div>
 <script src="js/script.js">
 </script>
-<script src="js/auth.js"></script></body>
+<script src="js/auth.js"></script><script src="js/trips-api.js"></script>
+</body>
 </html>

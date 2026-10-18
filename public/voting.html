@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>
+   Next Trip Vote · JoyJourney
+  </title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
+</script>
+<link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div aria-hidden="true" class="ambient">
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-star-four">
+</i>
+<i class="ph-fill ph-cloud">
+</i>
+<i class="ph-fill ph-sparkle">
+</i>
+</div>
+<aside class="sidebar">
+<a class="brand" href="index.html">
+<span class="brand-mark">
+<i class="ph-fill ph-airplane-tilt">
+</i>
+</span>
+<span>
+     JoyJourney
+    </span>
+</a>
+<nav>
+<a class="nav-link" href="index.html">
+<i class="ph-duotone ph-house">
+</i>
+<span>
+      Dashboard
+     </span>
+</a>
+<a class="nav-link" href="trips.html">
+<i class="ph-duotone ph-suitcase-rolling">
+</i>
+<span>
+      My Trips
+     </span>
+</a>
+<a class="nav-link" href="planner.html">
+<i class="ph-duotone ph-calendar-dots">
+</i>
+<span>
+      Planner
+     </span>
+</a>
+<a class="nav-link" href="places.html">
+<i class="ph-duotone ph-map-pin">
+</i>
+<span>
+      Places
+     </span>
+</a>
+<a class="nav-link active" href="voting.html"><i class="ph-duotone ph-chart-bar"></i><span>Next Trip Vote</span></a>
+<a class="nav-link" href="expenses.html">
+<i class="ph-duotone ph-wallet">
+</i>
+<span>
+      Expenses
+     </span>
+</a>
+<a class="nav-link" href="checklist.html">
+<i class="ph-duotone ph-check-square">
+</i>
+<span>
+      Checklist
+     </span>
+</a>
+<a class="nav-link" href="memories.html">
+<i class="ph-duotone ph-images">
+</i>
+<span>
+      Memories
+     </span>
+</a>
+<a class="nav-link" href="settings.html">
+<i class="ph-duotone ph-gear-six">
+</i>
+<span>
+      Settings
+     </span>
+</a>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar">
+<button aria-label="Open menu" class="menu-btn" onclick="toggleSidebar()">
+<i class="ph ph-list">
+</i>
+</button>
+<div class="search">
+<i class="ph ph-magnifying-glass">
+</i>
+<input placeholder="Search your journey..."/>
+</div>
+<div class="top-actions">
+<a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
+<a class="user-chip" href="profile.html">
+<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<span>
+<strong>
+        Yin
+       </strong>
+<small>
+        Beach Explorer
+       </small>
+</span>
+<i class="ph ph-caret-down">
+</i>
+</a>
+</div>
+</header>
+<div class="content jj-workspace" id="jjVotingPage">
+<section class="page-head playful-head"><div><span class="eyebrow">Your next adventure starts here</span><h1>Next Trip Vote</h1><p class="page-subtitle">Vote on where to go next, before you create a trip.</p></div><button class="btn primary" type="button" id="jjVoteCreate"><i class="ph-bold ph-plus"></i> Create Poll</button></section>
+<div class="jj-voting-layout"><aside class="card jj-poll-list"><h2>Public Voting Polls</h2><p class="jj-poll-sub">Everyone with a JoyJourney account can vote</p><div id="jjVotePolls"><p>Loading polls…</p></div></aside>
+<section id="jjVoteDetail" class="jj-vote-detail"><p class="jj-loading">Loading…</p></section></div></div>
+</main>
+<div class="modal" id="jjPollCreateModal" role="dialog" aria-modal="true" aria-labelledby="jjPollCreateTitle"><div class="card jj-editor"><div class="jj-editor-header"><h2 id="jjPollCreateTitle">Create a voting poll</h2><button type="button" class="jj-close" aria-label="Close" data-poll-close="jjPollCreateModal">✕</button></div><form id="jjPollCreateForm" class="jj-edit-form"><label>Poll title <input name="title" maxlength="150" required placeholder="Where should our next trip be?"></label><p>Every signed-in JoyJourney user can see and vote in this poll. No invite codes.</p><div class="jj-form-buttons"><button type="button" class="btn soft" data-poll-close="jjPollCreateModal">Cancel</button><button class="btn primary" type="submit">Create Poll</button></div></form></div></div>
+<div class="modal" id="jjVoteOptionModal" role="dialog" aria-modal="true" aria-labelledby="jjVoteOptionModalTitle"><div class="card jj-editor"><div class="jj-editor-header"><h2 id="jjVoteOptionModalTitle">Suggest a destination</h2><button type="button" class="jj-close" aria-label="Close" data-poll-close="jjVoteOptionModal">✕</button></div><form id="jjVoteOptionForm" class="jj-edit-form"><input name="optionId" type="hidden"><label>Destination <input name="name" maxlength="150" required placeholder="Chiang Mai / Japan / Phuket"></label><label>Why should we go? <textarea name="details" maxlength="1000" rows="3" placeholder="Things to see or reasons to go"></textarea></label><label>Photo URL (optional, HTTPS) <input name="image" type="url" maxlength="1500" placeholder="https://example.com/photo.jpg"></label><div class="jj-form-buttons"><button type="button" class="btn soft" data-poll-close="jjVoteOptionModal">Cancel</button><button class="btn primary" type="submit">Save Destination</button></div></form></div></div>
+<div class="toast" id="toast">
+   Done
+  </div>
+<script src="js/script.js">
+</script>
+<script src="js/auth.js"></script><script src="js/trips-api.js"></script><script src="js/destination-votes.js"></script>
+</body>
+</html>

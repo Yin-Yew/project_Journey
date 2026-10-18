@@ -63,7 +63,8 @@
       Places
      </span>
     </a>
-    <a class="nav-link" href="expenses.html">
+    <a class="nav-link" href="voting.html"><i class="ph-duotone ph-chart-bar"></i><span>Next Trip Vote</span></a>
+<a class="nav-link" href="expenses.html">
      <i class="ph-duotone ph-wallet">
      </i>
      <span>
@@ -105,12 +106,7 @@
      <input placeholder="Search your journey..."/>
     </div>
     <div class="top-actions">
-     <button aria-label="Notifications" class="icon-btn">
-      <i class="ph-duotone ph-bell">
-      </i>
-      <span class="notification-dot">
-      </span>
-     </button>
+     <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
      <a class="user-chip" href="profile.html">
       <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
       <span>
@@ -133,15 +129,15 @@
        Upcoming
       </span>
       <h1>
-       Koh Samet Getaway
+       Loading trip…
       </h1>
       <p>
        <i class="ph-duotone ph-calendar-blank">
        </i>
-       10–12 Oct 2026
+       Loading dates…
        <i class="ph-duotone ph-map-pin">
        </i>
-       Rayong
+       Loading destination…
       </p>
      </div>
      <div class="join-code">
@@ -149,7 +145,7 @@
        Invite Code
       </small>
       <strong id="tripInviteCode">
-       SAMET26
+       …
       </strong>
       <button onclick="copyCode()">
        <i class="ph ph-copy">
@@ -170,42 +166,10 @@
       <h3>
        Travel Buddies
       </h3>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Yin avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
-        Yin
-       </span>
-       <span class="pill yellow">
-        Owner
-       </span>
-      </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Ploy avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Ploy&amp;backgroundColor=d5efff"/>
-        Ploy
-       </span>
-       <span>
-        Member
-       </span>
-      </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Book avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Book&amp;backgroundColor=dff2d8"/>
-        Book
-       </span>
-       <span>
-        Member
-       </span>
-      </div>
-      <div class="member-row">
-       <span class="member-name">
-        <img alt="Gun avatar" class="member-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Gun&amp;backgroundColor=eee1ff"/>
-        Gun
-       </span>
-       <span>
-        Member
-       </span>
-      </div>
+      
+      
+      
+      
      </article>
      <article class="card">
       <h3>
@@ -216,7 +180,7 @@
        </i>
        Budget:
        <span id="tripBudgetDetail">
-        ฿12,000
+        —
        </span>
       </p>
       <p>
@@ -224,7 +188,7 @@
        </i>
        Activities:
        <span id="tripActivitiesDetail">
-        3
+        —
        </span>
       </p>
       <p>
@@ -240,7 +204,7 @@
        </i>
        Packing:
        <span id="tripPackingDetail">
-        60%
+        —
        </span>
       </p>
      </article>
@@ -248,17 +212,18 @@
       <h3>
        Quick Access
       </h3>
-      <a href="planner.html?trip=samet" id="plannerQuickLink">
+      <a href="planner.html" id="plannerQuickLink">
        <i class="ph-duotone ph-calendar-dots">
        </i>
        Planner
       </a>
-      <a href="expenses.html?trip=samet" id="expensesQuickLink">
+      <a href="places.html" id="placesQuickLink"><i class="ph-duotone ph-map-pin"></i> Places</a>
+      <a href="expenses.html" id="expensesQuickLink">
        <i class="ph-duotone ph-wallet">
        </i>
        Expenses
       </a>
-      <a href="checklist.html?trip=samet" id="checklistQuickLink">
+      <a href="checklist.html" id="checklistQuickLink">
        <i class="ph-duotone ph-check-square">
        </i>
        Checklist
@@ -302,5 +267,7 @@
   </script>
   <script src="js/finance.js">
   </script>
- </body>
+ <script src="js/trips-api.js"></script>
+<script src="js/features.js"></script>
+</body>
 </html>
