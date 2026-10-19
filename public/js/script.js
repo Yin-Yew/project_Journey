@@ -46,8 +46,32 @@ function demoRegister(event) {
 let pendingTripCover = "";
 
 
-// Demo trips removed: all displayed trips now come from MySQL.
-const DEFAULT_TRIPS = {};
+const DEFAULT_TRIPS = {
+  samet: {
+    id: "samet",
+    name: "Koh Samet Getaway",
+    destination: "Rayong",
+    startDate: "2026-10-10",
+    endDate: "2026-10-12",
+    budget: 12000,
+    cover: "https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    inviteCode: "SAMET26",
+    baseActivities: 3,
+    basePacking: { checked: 3, total: 5 }
+  },
+  bkk: {
+    id: "bkk",
+    name: "Bangkok Weekend",
+    destination: "Bangkok",
+    startDate: "2026-11-28",
+    endDate: "2026-11-29",
+    budget: 8000,
+    cover: "https://images.pexels.com/photos/20020757/pexels-photo-20020757.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    inviteCode: "BKK26",
+    baseActivities: 2,
+    basePacking: { checked: 2, total: 4 }
+  }
+};
 
 function getDeletedTripIds() {
   try {
@@ -105,7 +129,11 @@ function getTripStats(tripId) {
   const state = getModuleState(tripId);
   const baseActivities = trip?.baseActivities || 0;
   const basePacking = trip?.basePacking || { checked: 0, total: 0 };
-  const activities = baseActivities + (state.activities?.length || 0);
+  let plannerActivities = null;
+  try { plannerActivities = JSON.parse(localStorage.getItem("joyjourneyPlannerActivities") || "null"); } catch { plannerActivities = null; }
+  const activities = plannerActivities && Object.prototype.hasOwnProperty.call(plannerActivities, tripId)
+    ? (plannerActivities[tripId] || []).length
+    : baseActivities + (state.activities?.length || 0);
   const packing = state.packing || basePacking;
   const packingPercent = packing.total ? Math.round((packing.checked / packing.total) * 100) : 0;
 
@@ -253,7 +281,7 @@ function createTripCard(trip) {
   card.innerHTML = `
     <article class="card trip-card">
       <div class="trip-image-wrap">
-        <img alt="${escapeHTML(trip.name)} cover" class="cover-image" src="${escapeHTML(trip.cover)}">
+        <img alt="${escapeHTML(trip.name)} cover" class="cover-image" src="${trip.cover}">
         <span class="pill pink trip-status">Upcoming</span>
       </div>
       <div class="trip-card-body">
@@ -505,7 +533,7 @@ function tripSwitchMarkup(trip, group) {
 
   return `
     <button class="trip-switch active-trip saved-trip-switch" data-trip-id="${trip.id}" data-end-date="${trip.endDate}" data-target="${targetPrefix}-${tripSlug(trip.id)}" onclick="switchTripPanel(this,'${group}')">
-      <img alt="${escapeHTML(trip.name)}" src="${escapeHTML(trip.cover)}">
+      <img alt="${escapeHTML(trip.name)}" src="${trip.cover}">
       <span><strong>${escapeHTML(trip.name)}</strong><small>${escapeHTML(detail)}</small></span>
       <i class="ph ph-caret-right"></i>
     </button>
@@ -680,7 +708,7 @@ function markPaid() {
 }
 
 function setTheme(theme, notify = true) {
-  const availableThemes = ["sakura", "ocean", "matcha", "lavender", "peach", "berry"];
+  const availableThemes = ["sakura", "ocean", "matcha", "lavender", "peach", "berry", "cosmic"];
   const selectedTheme = availableThemes.includes(theme) ? theme : "sakura";
   document.documentElement.dataset.theme = selectedTheme;
   document.querySelectorAll("[data-theme-choice]").forEach((button) => {
@@ -907,5 +935,18 @@ window.addEventListener("click", (event) => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  renderStoredTrips();
+  renderStoredTripModules();
+  restoreSavedAdditions();
+  syncExpenseTripSelect();
+  removeDeletedTripUI();
+  removeCompletedTrips();
+  repairTripGroups();
+  selectTripFromQuery();
+  loadStoredTripDetail();
 
-// Database-driven trip initialization lives in js/trips-api.js.
+  document.querySelectorAll('[data-trip-panel="checklist"] .checklist').forEach((checklist) => {
+    checklist.addEventListener("change", () => savePackingFromPanel(checklist.closest('[data-trip-panel="checklist"]')));
+  });
+});

@@ -353,4 +353,4 @@ function loadUISettings() {
   applyUISettings(getUISettings());
 }
 
-// Server authentication bootstrap lives in js/trips-api.js.
+document.addEventListener("DOMContentLoaded", bootstrapAuth);
