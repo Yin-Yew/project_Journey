@@ -63,8 +63,7 @@
       Places
      </span>
     </a>
-    <a class="nav-link" href="voting.html"><i class="ph-duotone ph-chart-bar"></i><span>Next Trip Vote</span></a>
-<a class="nav-link" href="expenses.html">
+    <a class="nav-link" href="expenses.html">
      <i class="ph-duotone ph-wallet">
      </i>
      <span>
@@ -106,7 +105,12 @@
      <input placeholder="Search your journey..."/>
     </div>
     <div class="top-actions">
-     <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
+     <button aria-label="Notifications" class="icon-btn">
+      <i class="ph-duotone ph-bell">
+      </i>
+      <span class="notification-dot">
+      </span>
+     </button>
      <a class="user-chip" href="profile.html">
       <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
       <span>
@@ -172,6 +176,11 @@
         <span><strong>Berry Yogurt</strong><small>Berry · Grape · Cream</small></span>
         <i class="ph-fill ph-check-circle theme-check"></i>
        </button>
+       <button class="theme-choice" data-theme-choice="cosmic" onclick="saveTheme('cosmic')" type="button">
+        <span class="theme-swatch" aria-hidden="true"><i style="--swatch:#080d20"></i><i style="--swatch:#9b7bff"></i><i style="--swatch:#73d9ff"></i></span>
+        <span><strong>Cosmic Journey</strong><small>Deep Space · Nebula · Starlight</small></span>
+        <i class="ph-fill ph-check-circle theme-check"></i>
+       </button>
       </div>
      </article>
      <article class="card">
@@ -212,6 +221,5 @@
   </script>
   <script src="js/auth.js">
   </script>
- <script src="js/trips-api.js"></script>
-</body>
+ </body>
 </html>

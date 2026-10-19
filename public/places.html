@@ -13,6 +13,7 @@
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1">
 </script>
 <link href="css/style.css" rel="stylesheet"/>
+<link href="css/planner-places.css" rel="stylesheet"/>
 </head>
 <body>
 <div aria-hidden="true" class="ambient">
@@ -64,7 +65,6 @@
       Places
      </span>
 </a>
-<a class="nav-link" href="voting.html"><i class="ph-duotone ph-chart-bar"></i><span>Next Trip Vote</span></a>
 <a class="nav-link" href="expenses.html">
 <i class="ph-duotone ph-wallet">
 </i>
@@ -107,7 +107,12 @@
 <input placeholder="Search your journey..."/>
 </div>
 <div class="top-actions">
-<a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
+<button aria-label="Notifications" class="icon-btn">
+<i class="ph-duotone ph-bell">
+</i>
+<span class="notification-dot">
+</span>
+</button>
 <a class="user-chip" href="profile.html">
 <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
 <span>
@@ -123,19 +128,103 @@
 </a>
 </div>
 </header>
-<div class="content jj-workspace" id="jjPlacesPage">
-<section class="page-head playful-head"><div><span class="eyebrow">Places for this Trip</span><h1>Places We Love</h1><p class="page-subtitle">Save attractions, restaurants and cafes for each trip. Vote on your next destination from Next Trip Vote.</p></div><button class="btn primary" id="jjAddPlace" type="button"><i class="ph-bold ph-plus"></i> Add Place</button></section>
-<div class="jj-trip-control card"><label for="jjPlacesTrip">Select Trip</label><select id="jjPlacesTrip" aria-label="Select trip"></select><span id="jjPlacesSummary" class="jj-workspace-summary"></span></div>
-<section id="jjPlacesBody" class="jj-workspace-body"><p>Loading places…</p></section>
+<div class="content">
+<section class="page-head">
+<div>
+<span class="eyebrow">
+       Wishlist &amp; voting
+      </span>
+<h1>
+       Places We Love
+      </h1>
+</div>
+<button class="btn primary" onclick="demoToast('Place added to wishlist')">
+<i class="ph-bold ph-plus">
+</i>
+      Add Place
+     </button>
+</section>
+<section class="grid place-grid">
+<article class="card place-card">
+<img alt="Thai beach" class="place-photo" src="https://images.pexels.com/photos/36148825/pexels-photo-36148825.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Ao Phai Beach
+       </h3>
+<p>
+        Beach · Relax
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         12
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Tropical island pier" class="place-photo" src="https://images.pexels.com/photos/14013214/pexels-photo-14013214.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Island Pier
+       </h3>
+<p>
+        Viewpoint · Photo
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         9
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Clear sea and cliffs" class="place-photo" src="https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Snorkeling Spot
+       </h3>
+<p>
+        Activity · Ocean
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         8
+        </span>
+</button>
+</div>
+</article>
+<article class="card place-card">
+<img alt="Thailand coastline" class="place-photo" src="https://images.pexels.com/photos/36765742/pexels-photo-36765742.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200"/>
+<div class="place-info">
+<h3>
+        Sunset Coast
+       </h3>
+<p>
+        Viewpoint · Evening
+       </p>
+<button class="vote" onclick="vote(this)">
+<i class="ph ph-heart">
+</i>
+<span>
+         7
+        </span>
+</button>
+</div>
+</article>
+</section>
 </div>
 </main>
-<div class="modal" id="jjPlaceModal" role="dialog" aria-modal="true" aria-labelledby="jjPlaceModalTitle"><div class="card jj-editor"><div class="jj-editor-header"><h2 id="jjPlaceModalTitle">Add Place</h2><button type="button" aria-label="Close" class="jj-close" data-jj-close="jjPlaceModal">✕</button></div>
-<form id="jjPlaceForm" class="jj-edit-form"><label>Place name <input name="name" required maxlength="150" placeholder="Coffee shop or attraction"></label><label>Type <select name="category" required><option value="attraction">Attraction</option><option value="restaurant">Restaurant</option><option value="cafe">Cafe</option></select></label><label>Image (JPEG, PNG, WebP up to 1.5 MB) <input name="imageFile" type="file" accept="image/jpeg,image/png,image/webp"></label><label>Or image URL (HTTPS) <input name="imageUrl" type="url" maxlength="1500" placeholder="https://example.com/photo.jpg"></label><img id="jjPlacePreview" alt="Place image preview" class="jj-place-preview" hidden><label>Description <textarea name="details" maxlength="2000" rows="3" placeholder="Why should we visit?"></textarea></label><div class="jj-form-buttons"><button type="button" class="btn soft" data-jj-close="jjPlaceModal">Cancel</button><button class="btn primary" type="submit" id="jjPlaceSave">Save Place</button></div></form></div></div>
 <div class="toast" id="toast">
    Done
   </div>
 <script src="js/script.js">
 </script>
-<script src="js/auth.js"></script><script src="js/trips-api.js"></script><script src="js/planner-places.js"></script>
-</body>
+<script src="js/auth.js"></script>
+<script src="js/planner-places.js"></script></body>
 </html>
