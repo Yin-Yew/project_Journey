@@ -64,52 +64,52 @@ JoyJourney คือเว็บแอปสำหรับวางแผนท
 ```text
 project_Journey/
 ├── README.md
-├── .env.example             # ตัวอย่างตัวแปรสภาพแวดล้อม (ไม่มีรหัสจริง)
-├── .gitignore               # ป้องกัน .env / node_modules / ไฟล์อัปโหลด
+├── .env.example            
+├── .gitignore             
 ├── database/
-│   ├── schema.sql           # สำหรับติดตั้งฐานข้อมูลใหม่เป็น v6
-│   ├── migrate_existing.sql # สำหรับฐานข้อมูลเก่าบางชุดเท่านั้น
+│   ├── schema.sql         
+│   ├── migrate_existing.sql 
 │   ├── migrate_v2.sql
 │   ├── migrate_v3.sql
 │   ├── migrate_v4.sql
-│   ├── migrate_v5.sql        # เพิ่มระบบโพลครั้งแรก
-│   └── migrate_v6.sql        # เปลี่ยนโพลเป็นสาธารณะภายในเว็บ
+│   ├── migrate_v5.sql        
+│   └── migrate_v6.sql       
 ├── server/
-│   ├── app.js               # Express server, Auth และ Trip API
-│   ├── database.js          # MySQL connection pool
-│   ├── trip-features.js     # Dashboard, Expenses, Payments, Memories
-│   ├── planner-places.js    # Planner และ Places API
-│   ├── checklist.js         # Checklist API รายรายการ
-│   ├── destination-votes.js # Public Next Trip Vote API
-│   ├── migrate-checklist.js # ย้าย Checklist JSON เก่า (รันครั้งเดียว)
+│   ├── app.js               
+│   ├── database.js          
+│   ├── trip-features.js   
+│   ├── planner-places.js    
+│   ├── checklist.js        
+│   ├── destination-votes.js
+│   ├── migrate-checklist.js 
 │   ├── package.json
-│   └── .env                 # สร้างเองบนเครื่อง ห้าม Commit
+│   └── .env                
 ├── public/
-│   ├── index.html           # Dashboard
+│   ├── index.html         
 │   ├── login.html
 │   ├── register.html
-│   ├── trips.html           # My Trips
+│   ├── trips.html           
 │   ├── trip-detail.html
 │   ├── planner.html
 │   ├── places.html
-│   ├── voting.html          # Next Trip Vote (v6)
+│   ├── voting.html          
 │   ├── expenses.html
 │   ├── checklist.html
 │   ├── memories.html
 │   ├── profile.html
 │   ├── settings.html
 │   ├── css/style.css
-│   ├── js/                  # JavaScript ฝั่ง Browser
+│   ├── js/                  
 │   └── assets/
 ├── tests/
 │   ├── checklist.test.js
 │   ├── destination-votes.test.js
 │   └── destination-join.test.js
 └── uploads/
-    └── memories/           # ไฟล์รูปที่อัปโหลดจริง (อย่าลบทิ้ง)
+    └── memories/        
 ```
 
-ไฟล์ JavaScript/Style ชื่อเดียวกันที่อยู่ตรง `public/` ระดับบนเป็นไฟล์เก่า/placeholder; หน้าเว็บหลักอ้างอิงจาก `public/js/` และ `public/css/` เป็นหลัก
+
 
 ## ติดตั้งใหม่บน Windows
 
