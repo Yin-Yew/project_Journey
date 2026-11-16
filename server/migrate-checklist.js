@@ -20,7 +20,7 @@ const pool=require('./database');
    // If users already added items using the new API, don't merge stale items.
    if(!existing[0].n){for(const item of items){
     const label=String(item?.label||'').trim().slice(0,150);
-    if(label){await conn.execute('INSERT INTO trip_checklist_items (trip_id,label,is_checked,created_by) VALUES (?,?,?,?)',[row.trip_id,label,item.checked?1:0,owner[0].owner_id]);added++;}
+    if(label){await conn.execute('INSERT INTO trip_checklist_items (trip_id,label,is_checked,created_by,assigned_to) VALUES (?,?,?,?,?)',[row.trip_id,label,item.checked?1:0,owner[0].owner_id,owner[0].owner_id]);added++;}
    }}
    await conn.commit();done++;
   }catch(e){await conn.rollback();throw e;}finally{conn.release();}

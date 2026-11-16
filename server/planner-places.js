@@ -43,7 +43,7 @@ module.exports=function registerPlannerPlaces(app,{run,pool,protect,membership,f
  }
  app.get('/api/trips/:id/activities',...protect(async(req,res)=>{
   const trip=await permitted(req,res);if(!trip)return;
-  const [rows]=await run('SELECT * FROM trip_activities WHERE trip_id=? ORDER BY day_number,sort_order,id',[trip.id]);
+  const [rows]=await run('SELECT * FROM trip_activities WHERE trip_id=? ORDER BY day_number,start_time,id',[trip.id]);
   res.json({activities:rows.map(activityDTO),days:daySpan(trip)});
  }));
  app.post('/api/trips/:id/activities',...protect(async(req,res)=>{
@@ -69,20 +69,6 @@ module.exports=function registerPlannerPlaces(app,{run,pool,protect,membership,f
   if(!okId(req.params.activityId))return fail(res,400,'Invalid activity ID.');
   const [result]=await run('DELETE FROM trip_activities WHERE trip_id=? AND id=?',[trip.id,req.params.activityId]);
   if(!result.affectedRows)return fail(res,404,'Activity not found.');res.json({ok:true});
- }));
- app.put('/api/trips/:id/activities/reorder/day',...protect(async(req,res)=>{
-  const trip=await permitted(req,res,true);if(!trip)return;
-  const day=Number(req.body.day),ids=req.body.ids;
-  if(!Number.isInteger(day)||day<1||day>daySpan(trip)||!Array.isArray(ids)||ids.length>500||ids.some(i=>!okId(i))||new Set(ids.map(String)).size!==ids.length)return fail(res,400,'Invalid activity order.');
-  const conn=await pool.getConnection();
-  try{
-   await conn.beginTransaction();
-   const [rows]=await conn.execute('SELECT id FROM trip_activities WHERE trip_id=? AND day_number=? FOR UPDATE',[trip.id,day]);
-   const expected=new Set(rows.map(r=>String(r.id)));
-   if(expected.size!==ids.length||ids.some(id=>!expected.has(String(id)))){await conn.rollback();return fail(res,409,'Activity list changed. Reload and try again.');}
-   for(let n=0;n<ids.length;n++)await conn.execute('UPDATE trip_activities SET sort_order=? WHERE trip_id=? AND day_number=? AND id=?',[(n+1)*10,trip.id,day,ids[n]]);
-   await conn.commit();res.json({ok:true});
-  }catch(e){await conn.rollback();throw e;}finally{conn.release();}
  }));
  async function placeInTrip(req,res,trip){
   if(!okId(req.params.placeId)){fail(res,400,'Invalid place ID.');return null;}

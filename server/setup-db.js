@@ -22,6 +22,25 @@ async function setup(){
    .replace(/USE joyjourney;/,`USE ${mysql.escapeId(name)};`);
   if(sql===schema)throw new Error('Unexpected schema.sql format.');
   await con.query(sql);
+  // Upgrade existing installations without dropping or resetting checklists.
+  const [columns]=await con.query(`SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME='trip_checklist_items' AND COLUMN_NAME='assigned_to'`,[name]);
+  if(!columns.length){
+   await con.query(`ALTER TABLE ${mysql.escapeId(name)}.trip_checklist_items
+      ADD COLUMN assigned_to INT NULL AFTER created_by,
+      ADD INDEX idx_checklist_assignee (trip_id,assigned_to),
+      ADD CONSTRAINT fk_checklist_assignee FOREIGN KEY (assigned_to) REFERENCES ${mysql.escapeId(name)}.users(id) ON DELETE SET NULL`);
+   console.log('Updated existing checklist table with member assignments.');
+  }
+  // v12: private notes belong to the account that originally CREATED the item.
+  // This safely converts v11's "assigned to another person" records once the
+  // same startup procedure is run. It does not delete notes or alter their checks.
+  await con.query(`UPDATE ${mysql.escapeId(name)}.trip_checklist_items c
+    SET c.assigned_to=c.created_by WHERE c.created_by IS NOT NULL
+      AND (c.assigned_to IS NULL OR c.assigned_to<>c.created_by)`);
+  // Historic rows without a surviving creator go to their trip's owner.
+  await con.query(`UPDATE ${mysql.escapeId(name)}.trip_checklist_items c
+    JOIN ${mysql.escapeId(name)}.trips t ON t.id=c.trip_id
+    SET c.assigned_to=t.owner_id WHERE c.assigned_to IS NULL`);
   console.log(`MySQL schema ready: ${name}. No sample data was added.`);
  } finally {await con.end();}
 }

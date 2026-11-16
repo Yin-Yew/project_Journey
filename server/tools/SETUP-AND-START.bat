@@ -7,6 +7,15 @@ if errorlevel 1 (
  pause
  exit /b 1
 )
+echo Checking for an older server on port 3000...
+powershell -NoProfile -ExecutionPolicy Bypass -File "server\tools\CHECK-PORT-3000.ps1"
+if errorlevel 1 (
+ echo.
+ echo Cannot start JoyJourney: another program is already using port 3000.
+ echo Stop the old JoyJourney server in VS Code with Ctrl+C, then retry.
+ pause
+ exit /b 1
+)
 if not exist "server\.env" copy ".env.example" "server\.env" >nul
 cd server
 if not exist "node_modules\mysql2\package.json" (

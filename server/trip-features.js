@@ -139,9 +139,9 @@ module.exports = function registerFeatures(app, deps) {
        COALESCE((SELECT SUM(e.amount) FROM expenses e WHERE e.trip_id=t.id),0) AS total_expense,
        (SELECT COUNT(*) FROM payments p WHERE p.trip_id=t.id AND p.status='pending') AS pending_payments,
        (SELECT COUNT(*) FROM payments p WHERE p.trip_id=t.id AND p.status='paid') AS paid_payments,
-       (SELECT COUNT(*) FROM trip_checklist_items ci WHERE ci.trip_id=t.id) AS packing_total,
-       (SELECT COUNT(*) FROM trip_checklist_items ci WHERE ci.trip_id=t.id AND ci.is_checked=1) AS packing_done
-       FROM trips t JOIN trip_members m ON m.trip_id=t.id WHERE m.user_id=?`,[req.user.id]);
+       (SELECT COUNT(*) FROM trip_checklist_items ci WHERE ci.trip_id=t.id AND ci.assigned_to=?) AS packing_total,
+       (SELECT COUNT(*) FROM trip_checklist_items ci WHERE ci.trip_id=t.id AND ci.assigned_to=? AND ci.is_checked=1) AS packing_done
+       FROM trips t JOIN trip_members m ON m.trip_id=t.id WHERE m.user_id=?`,[req.user.id,req.user.id,req.user.id]);
    res.json({trips:rows.map(r=>{const total=Number(r.packing_total),packed=Number(r.packing_done);return {id:String(r.id),name:r.name,startDate:dateText(r.start_date),endDate:dateText(r.end_date),status:r.status,budget:Number(r.budget),memberCount:Number(r.member_count),totalExpense:Number(r.total_expense),packingTotal:total,packingDone:packed,packingPercent:total?Math.round(packed*100/total):0,pendingPayments:Number(r.pending_payments),paidPayments:Number(r.paid_payments)};} )});
  }));
  // Private images are retrieved only through authenticated GET /api/memories/:id/image.

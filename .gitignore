@@ -15,3 +15,6 @@ node_modules/
 
 uploads/*
 !uploads/.gitkeep
+# Generated sample-account passwords must not be committed.
+DEMO-LOGIN.txt
+backups/

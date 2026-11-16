@@ -3100,3 +3100,8 @@ html[data-theme] .day-tabs .active {
 .jj-note-empty,.jj-note-readonly{color:var(--muted);font-size:.9rem;margin:14px 0}
 .jj-note-sheet [disabled]{opacity:.65;cursor:not-allowed}
 @media(max-width:600px){.jj-note-sheet{padding:18px}.jj-note-add{flex-wrap:wrap}.jj-note-add input{flex-basis:100%}.jj-note-add button{width:100%;justify-content:center}}
+
+/* Checklist v12.2: safe, retriable privacy error panel */
+.jj-note-error{display:grid;justify-items:start;gap:10px;border:1px solid #f3c7d5;background:var(--surface,#fff);border-radius:18px;padding:22px;max-width:720px}
+.jj-note-error>i{color:#dc5b7a;font-size:26px}
+.jj-note-error p{color:var(--muted);margin:0;line-height:1.55}

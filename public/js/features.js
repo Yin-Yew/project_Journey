@@ -61,6 +61,13 @@ function renderChecklistPanel(tripId){
  const trip=getTripById(tripId),panel=document.querySelector(`[data-trip-panel="checklist"][data-trip-id="${tripId}"]`);
  if(!trip||!panel)return;
  const list=panel.querySelector('.checklist');if(!list)return;
+ // Show a retriable error inside the panel instead of hiding the whole page.
+ // Never show cached or unverified notes when this check fails.
+ if(checklistPrivacyErrors[String(tripId)]){
+  const message=checklistPrivacyErrors[String(tripId)];
+  list.innerHTML=`<div class="jj-note-error" role="alert"><i class="ph-duotone ph-shield-warning"></i><strong>Private notes are temporarily unavailable</strong><p>${escapeHTML(message)}</p><button type="button" class="btn soft" data-jj-note-retry>Retry checklist</button></div>`;
+  return;
+ }
  const items=getModuleState(tripId).checklistItems||[];
  const done=items.filter(item=>item.checked).length;
  const editable=trip.status!=='finished';
@@ -83,7 +90,7 @@ function renderChecklistPanel(tripId){
   </div>`;
  }).join('');
  list.innerHTML=`<div class="jj-note-heading"><i class="ph-duotone ph-note-pencil"></i>
-   <div><strong>My packing list</strong><small><i class="ph ph-lock-key"></i> Only you can see these notes</small></div></div>
+   <div><strong>My packing list</strong><small><i class="ph ph-lock-key"></i> Private to ${escapeHTML(currentProfile?.email||"your account")}</small></div></div>
   ${editable?`<form class="jj-note-add" data-jj-note-add>
     <input name="label" maxlength="150" required autocomplete="off" aria-label="Packing item" placeholder="Write something to pack...">
     <button type="submit" class="btn primary"><i class="ph-bold ph-plus"></i> Add</button>
@@ -119,6 +126,15 @@ function initTripChecklist(){
   finally{if(button?.isConnected)button.disabled=false;}
  });
  document.addEventListener('click',async event=>{
+  const retry=event.target.closest('[data-jj-note-retry]');
+  if(retry){
+   const panel=retry.closest('[data-trip-panel="checklist"]');if(!panel)return;
+   retry.disabled=true;
+   checklistContractPromise=null;
+   try{await refreshChecklistState(panel.dataset.tripId);}catch(error){showToast(error.message);}
+   finally{if(retry.isConnected)retry.disabled=false;}
+   return;
+  }
   const edit=event.target.closest('[data-check-edit]');
   const cancel=event.target.closest('[data-jj-note-cancel]');
   const remove=event.target.closest('[data-check-delete]');

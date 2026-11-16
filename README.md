@@ -525,3 +525,38 @@ Checklist is now a small personal notes list per trip and per signed-in account:
 5. เมื่อทริปมีสถานะ **Finished** ระบบจะให้ดูรายการเดิมได้แต่ไม่อนุญาตให้แก้ไข
 
 **หมายเหตุการอัปเกรด:** หากเคยใช้ v11 ซึ่งอนุญาตให้สร้างรายการให้เพื่อน การอัปเกรดเป็น v12 จะจัดรายการเก่ากลับเป็นของบัญชีที่สร้างรายการนั้น (ไม่ใช่ผู้รับมอบหมายเดิม) เพื่อรักษากติกา “แต่ละคนสร้างและเห็นโน้ตของตนเอง” ทั้งนี้ไม่มีการลบรายการหรือรีเซ็ตสถานะที่ติ๊กไว้ ควรสำรองฐานข้อมูลก่อนอัปเกรด
+
+
+## v12.1 — Private Checklist verification
+
+- Each checklist request is authenticated and filtered by the logged-in account in MySQL.
+- The Checklist page now loads directly from `/api/trips/:id/checklist`, verifies `accountId`, and refuses to display notes if the running Node.js server is too old to provide this value.
+- The account email is displayed on the private note card so you can confirm who is currently logged in.
+- If you have already started JoyJourney, stop the old server with **Ctrl+C**, start `server/tools/SETUP-AND-START.bat` again, then press **Ctrl+Shift+R** on Checklist. If a previous process is holding port 3000, stop that process before starting the new one.
+- Do not delete or reset the MySQL database: this update changes only privacy verification and page loading; existing notes are preserved.
+- To verify isolation, sign in as Account A, add a uniquely named note, then sign out and sign in with Account B (a DIFFERENT email) in the same trip. Account B must not see Account A's note. The two accounts must have different MySQL user IDs.
+- Historical rows created by one member on behalf of another under v11 are assigned to their original **creator** by the v12 migration; that is expected ownership conversion, not a cross-account sharing rule.
+
+
+## v12.2 — Checklist server version check and recovery
+
+The Checklist page now checks `/api/checklist/version` before loading private notes.
+It rejects any old backend or account mismatch, preventing cross-account data exposure.
+If the server is outdated, the page stays usable and displays a retry panel rather than a blank screen.
+The backend does not change the MySQL schema or erase checklists.
+
+On Windows, check the Node process listening on port 3000, stop the **JoyJourney**
+process (not unrelated programs), then start the server with
+`server\tools\SETUP-AND-START.bat` from the updated project folder.
+Do not overwrite `server\.env` or delete `.git`.
+
+To see the actual backend version, sign in, open the browser's developer console and run:
+
+```javascript
+fetch('/api/checklist/version',{headers:{Authorization:'Bearer '+localStorage.getItem('joyjourneyApiToken')}})
+  .then(async r=>({status:r.status,body:await r.json()}))
+  .then(console.log);
+```
+
+Expected: status 200 and `contract: private-checklist-v12.2`. Never
+share your token or raw console history with anyone.

@@ -1,4 +1,4 @@
-# JoyJourney v9 — ฉบับไม่มี Demo
+# JoyJourney v11 — ฉบับไม่มี Demo
 
 ## ใช้งานบน Windows
 1. เปิด MySQL Server (MySQL 8)
@@ -15,7 +15,14 @@
 - ใช้โฟลเดอร์ที่ Clone มาจาก GitHub ซึ่งมี `.git` อยู่แล้ว
 - นำ **เนื้อหาภายใน** โฟลเดอร์ที่แตก ZIP ไปแทนไฟล์เก่า ไม่ลบ `.git`
 - ตรวจคำสั่งใน `server/tools/CLEAN-OLD-DEMO-FILES.bat` ก่อนเรียกใช้ หากต้องลบไฟล์เดโมที่ค้างจากรุ่นเก่า หลังคัดลอกไฟล์ใหม่ เพื่อเก็บกวาดโค้ดและรูปเดโมเก่าที่อาจยังค้างใน Repository (ไม่ยุ่งกับ MySQL)
-- ใน VS Code ตรวจ `git status`, `git add -A`, `git diff --cached --name-only`, `git commit -m "Use JoyJourney v9 clean build"`, แล้ว `git push`
+- ใน VS Code ตรวจ `git status`, `git add -A`, `git diff --cached --name-only`, `git commit -m "Use JoyJourney v11 clean build"`, แล้ว `git push`
 - อย่า Commit `server/.env`, `node_modules`, `backups`, หรือข้อมูลส่วนตัว
 
 **คำเตือน:** ถ้าใช้ `DB_NAME=joyjourney` หรือฐานเก่าที่มีข้อมูลเดโมอยู่ ข้อมูลเดิมจะยังอยู่ เพราะเราไม่ลบข้อมูลจากฐานเดิม ต้องใช้ฐานใหม่อย่าง `joyjourney_clean` เพื่อเริ่มว่างโดยปลอดภัย
+
+## อัปเดต v11 และข้อมูลเดิม
+- ให้ Backup ก่อน โดยใช้ `server/tools/BACKUP-DATABASE.bat`
+- วางไฟล์ ZIP ใหม่ทับใน Repository เดิม (เก็บ `.git` และ `server/.env` ไว้)
+- เปิด `server/tools/SETUP-AND-START.bat` เพื่ออัปเกรด Checklist ของฐานข้อมูลเดิมอัตโนมัติ
+- Planner เรียงกิจกรรมตามเวลาอัตโนมัติ ไม่ใช้ปุ่มเลื่อนขึ้น/ลง
+- Checklist แบ่งรายการตามสมาชิก โดยเลือกผู้รับผิดชอบในหน้าต่าง Add Item

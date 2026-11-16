@@ -80,6 +80,8 @@ app.post('/api/auth/login',wrap(async(req,res)=>{
   await createSession(res,users[0]);
 }));
 app.get('/api/auth/me',...protect(async(req,res)=>res.json({user:safeUser(req.user)})));
+// v12.2: authenticated version handshake to detect an old server before reading private notes.
+app.get('/api/checklist/version',...protect(async(req,res)=>res.json({contract:'private-checklist-v12.2',accountId:String(req.user.id)})));
 app.post('/api/auth/logout',...protect(async(req,res)=>{const token=req.get('authorization').slice(7);await run('DELETE FROM auth_sessions WHERE token_hash=?',[tokenHash(token)]);res.json({ok:true});}));
 app.patch('/api/auth/me',...protect(async(req,res)=>{
   const name=String(req.body.name||'').trim(),email=String(req.body.email||'').trim().toLowerCase();
@@ -170,10 +172,10 @@ app.get('/api/trips/:id/modules',...protect(async(req,res)=>{
  const trip=await membership(req,res);if(!trip)return;
  const [[rows],[items]]=await Promise.all([
    run('SELECT module_data FROM trip_modules WHERE trip_id=?',[trip.id]),
-   run('SELECT id,label,is_checked FROM trip_checklist_items WHERE trip_id=? ORDER BY id',[trip.id])
+   run('SELECT id,label,is_checked FROM trip_checklist_items WHERE trip_id=? AND assigned_to=? ORDER BY id',[trip.id,req.user.id])
  ]);
  const modules=rows.length?(typeof rows[0].module_data==='string'?JSON.parse(rows[0].module_data):rows[0].module_data):{};
- // Always return authoritative row-level checklist, never old JSON data.
+ // Only this account's notes may leave the server, even for a trip owner.
  modules.checklistItems=items.map(item=>({id:String(item.id),label:item.label,checked:!!item.is_checked}));
  modules.packing=null;
  res.json({modules});

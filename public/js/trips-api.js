@@ -13,6 +13,7 @@ async function apiRequest(url,options={}){
   const token=localStorage.getItem(JJ_TOKEN_KEY);
   let response;
   try { response=await fetch(url,{
+    cache:'no-store',
     ...options,
     headers:{...(options.body?{'Content-Type':'application/json'}:{}),...(token?{Authorization:`Bearer ${token}`}:{}),...(options.headers||{})}
   });} catch {throw new Error('Cannot connect to the server. Is Node.js running?');}
@@ -48,12 +49,53 @@ function updateModuleState(id,updater){
  tripModuleWrites[id]=(tripModuleWrites[id]||Promise.resolve()).catch(()=>{}).then(()=>apiJson(`/api/trips/${encodeURIComponent(id)}/modules`,'PUT',{activities:changed.activities||[]})).catch(error=>showToast(error.message));
  return changed;
 }
+// Checklist version and identity must be verified by the running server.
+// Never fall back to the old trip_modules checklist: it may contain other users' notes.
+let checklistContractPromise=null;
+const checklistPrivacyErrors={};
+async function verifyChecklistServer(){
+ if(!currentProfile?.id)throw new Error('Please sign in again before opening private packing notes.');
+ if(!checklistContractPromise){
+  checklistContractPromise=apiRequest('/api/checklist/version').catch(error=>{
+   checklistContractPromise=null;
+   if(/\(404\)|not found|route/i.test(error.message)){
+    throw new Error('The server on port 3000 is an older JoyJourney version. Stop the old Node.js server, then start v12.2 from this project folder.');
+   }
+   throw error;
+  });
+ }
+ const reply=await checklistContractPromise;
+ if(reply?.contract!=='private-checklist-v12.2'){
+  throw new Error('An outdated JoyJourney server is running on port 3000. Restart the server from the updated project.');
+ }
+ if(String(reply.accountId)!==String(currentProfile.id)){
+  throw new Error('Your sign-in changed while this page was open. Log out, log in again and refresh.');
+ }
+ return String(reply.accountId);
+}
+async function readPrivateChecklist(id){
+ const expectedId=await verifyChecklistServer();
+ const response=await apiRequest(`/api/trips/${encodeURIComponent(id)}/checklist`);
+ if(String(response?.accountId)!==expectedId || !Array.isArray(response?.items)){
+   throw new Error('The Checklist response could not be verified for this account. Please restart the v12.2 server and refresh.');
+ }
+ return response.items;
+}
 async function refreshChecklistState(id){
  id=String(id);
- const {items}=await apiRequest(`/api/trips/${encodeURIComponent(id)}/checklist`);
- tripModuleCache[id]={...getModuleState(id),checklistItems:items||[]};
- if(typeof renderChecklistPanel==='function')renderChecklistPanel(id);
- return items;
+ try{
+  const items=await readPrivateChecklist(id);
+  delete checklistPrivacyErrors[id];
+  tripModuleCache[id]={...getModuleState(id),checklistItems:items};
+  if(typeof renderChecklistPanel==='function')renderChecklistPanel(id);
+  return items;
+ }catch(error){
+  // Fail closed: never leave a previous account's notes visible after an error.
+  tripModuleCache[id]={...getModuleState(id),checklistItems:[]};
+  checklistPrivacyErrors[id]=error.message;
+  if(typeof renderChecklistPanel==='function')renderChecklistPanel(id);
+  throw error;
+ }
 }
 async function checklistCreate(id,label,assignedTo){
  await apiJson(`/api/trips/${encodeURIComponent(id)}/checklist`,'POST',{label,assignedTo});
@@ -73,6 +115,16 @@ async function loadTrips(){
    try {const [mod,detail]=await Promise.all([apiRequest(`/api/trips/${trip.id}/modules`),apiRequest(`/api/trips/${trip.id}`)]);tripDetailsCache[trip.id]=detail;return [trip.id,mod.modules];}
    catch {return [trip.id,{activities:[],checklistItems:[],packing:null}];}
  }));tripModuleCache=Object.fromEntries(modules);
+ // Private notes are never loaded from legacy module data.
+ // A server mismatch should NOT blank the whole page; show a safe retry panel.
+ if(document.querySelector('.trip-switcher[data-trip-group="checklist"]')){
+   const all=await Promise.all(tripCache.map(async trip=>{
+     tripModuleCache[trip.id]={...getModuleState(trip.id),checklistItems:[]};
+     try{return [trip.id,await readPrivateChecklist(trip.id)];}
+     catch(error){checklistPrivacyErrors[trip.id]=error.message;return [trip.id,[]];}
+   }));
+   for(const [id,items] of all)tripModuleCache[id]={...getModuleState(id),checklistItems:items};
+ }
  return tripCache;
 }
 function safeCover(trip){return /^(https:\/\/|data:image\/(jpeg|png|webp);base64,)/.test(trip.cover||'')?trip.cover:JJ_COVER_DEFAULT;}
@@ -334,3 +386,13 @@ async function startJoyJourney(){
  }catch(e){console.error(e);showToast(e.message);const content=document.querySelector('.content');if(content){const p=document.createElement('p');p.className='form-message error';p.textContent=e.message;content.prepend(p);}}
 }
 document.addEventListener('DOMContentLoaded',startJoyJourney);
+
+// If another tab signs in/out, remove the previous account's private notes
+// immediately and reload with the newly authenticated identity.
+window.addEventListener('storage',event=>{
+ if(event.key!==JJ_TOKEN_KEY)return;
+ tripModuleCache={};
+ checklistContractPromise=null;
+ document.querySelectorAll('.trip-panel[data-trip-panel="checklist"] .checklist').forEach(node=>node.replaceChildren());
+ location.reload();
+});
