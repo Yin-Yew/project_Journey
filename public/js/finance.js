@@ -4,39 +4,6 @@ let currentExpenseEditId = "";
 let paymentSlipData = "";
 let activePayment = null;
 
-function financeSeedData() {
-  return {
-    version: JJ_FINANCE_VERSION,
-    expenses: {
-      samet: [
-        createFinanceExpense("samet-hotel", "Hotel", 2400, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Stay"),
-        createFinanceExpense("samet-van", "Van to pier", 960, "ploy", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport"),
-        createFinanceExpense("samet-dinner", "Beach dinner", 1280, "book", ["yin", "ploy", "book", "gun"], "equal", {}, "Food")
-      ],
-      bkk: [
-        createFinanceExpense("bkk-cafe", "Cafe hopping", 900, "gun", ["yin", "ploy", "book", "gun"], "equal", {}, "Food"),
-        createFinanceExpense("bkk-taxi", "Taxi", 640, "yin", ["yin", "ploy", "book", "gun"], "equal", {}, "Transport")
-      ]
-    },
-    payments: []
-  };
-}
-
-function createFinanceExpense(id, title, amount, paidBy, participants, splitType, shares, category) {
-  return {
-    id,
-    title,
-    amount: Number(amount),
-    paidBy,
-    participants,
-    splitType,
-    shares,
-    category: category || "Other",
-    date: new Date().toISOString().slice(0, 10),
-    createdAt: new Date().toISOString()
-  };
-}
-
 // In-memory cache populated exclusively from the authenticated MySQL API.
 const databaseFinance = {version: JJ_FINANCE_VERSION,expenses:{},payments:[]};
 function getFinanceData(){return databaseFinance;}
@@ -79,6 +46,10 @@ function getTripExpenses(tripId) {
 }
 
 function getExpenseShares(expense) {
+  // Server-stored satang allocations are authoritative, especially when equal
+  // division leaves one or two cents to distribute among different members.
+  if(expense.amountShares && Object.keys(expense.amountShares).length)
+    return expense.amountShares;
   const participants = expense.participants || [];
   const amount = Number(expense.amount || 0);
   const shares = {};
@@ -128,13 +99,19 @@ function computeTripBalances(tripId) {
       balances[memberId] = roundMoney((balances[memberId] || 0) - Number(share || 0));
     });
   });
+  // A confirmed transfer decreases payer debt and increases the recipient's net balance.
+  // No exact-amount matching: even partial or old payments remain credited after edits.
+  getFinanceData().payments.filter(p=>p.tripId===tripId&&p.status==='paid').forEach(p=>{
+    balances[p.from]=roundMoney((balances[p.from]||0)+Number(p.amount));
+    balances[p.to]=roundMoney((balances[p.to]||0)-Number(p.amount));
+  });
   return balances;
 }
 
 function computeSettlements(tripId) {
   const balances = computeTripBalances(tripId);
-  const creditors = Object.entries(balances).filter(([, amount]) => amount > 0.009).map(([id, amount]) => ({ id, amount })).sort((a, b) => b.amount - a.amount);
-  const debtors = Object.entries(balances).filter(([, amount]) => amount < -0.009).map(([id, amount]) => ({ id, amount: Math.abs(amount) })).sort((a, b) => b.amount - a.amount);
+  const creditors = Object.entries(balances).filter(([, amount]) => amount > 0.009).map(([id, amount]) => ({ id, amount })).sort((a, b) => b.amount - a.amount || String(a.id).localeCompare(String(b.id)));
+  const debtors = Object.entries(balances).filter(([, amount]) => amount < -0.009).map(([id, amount]) => ({ id, amount: Math.abs(amount) })).sort((a, b) => b.amount - a.amount || String(a.id).localeCompare(String(b.id)));
   const settlements = [];
   let creditorIndex = 0;
   let debtorIndex = 0;
@@ -173,7 +150,7 @@ function financeSummary(tripId) {
   const expenses = getTripExpenses(tripId);
   const total = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
   const paid = expenses.filter((expense) => expense.paidBy === currentUserId).reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
-  const settlements = computeSettlements(tripId).filter((settlement) => !isSettlementCompleted(settlement));
+  const settlements = computeSettlements(tripId);
   const owe = settlements.filter((settlement) => settlement.from === currentUserId).reduce((sum, settlement) => sum + settlement.amount, 0);
   const receive = settlements.filter((settlement) => settlement.to === currentUserId).reduce((sum, settlement) => sum + settlement.amount, 0);
   return { total: roundMoney(total), paid: roundMoney(paid), owe: roundMoney(owe), receive: roundMoney(receive) };
@@ -201,8 +178,9 @@ function renderFinancePage() {
   const trips = getAllActiveTripsForFinance();
   const queryTrip = new URLSearchParams(location.search).get("trip");
   const currentTrip = trips.some((trip) => trip.id === queryTrip) ? queryTrip : trips[0]?.id || "";
-  switcher.innerHTML = trips.map((trip) => financeTripSwitch(trip, trip.id === currentTrip)).join("");
+  switcher.innerHTML = trips.length ? trips.map((trip) => financeTripSwitch(trip, trip.id === currentTrip)).join("") : '<p class="finance-empty-trips">No trips yet. <a href="trips.html">Create a trip</a> to start tracking expenses.</p>';
   panels.innerHTML = trips.map((trip) => financePanel(trip, trip.id === currentTrip)).join("");
+  const addButton=document.querySelector('.finance-head > button');if(addButton)addButton.disabled=!trips.length;
   populateExpenseTripSelect(trips, currentTrip);
   renderExpenseParticipants();
   updateFinanceOverview();
@@ -218,17 +196,16 @@ function financePanel(trip, active) {
         <span class="trip-date"><i class="ph-duotone ph-calendar"></i> ${escapeHTML(formatTripDate(trip.startDate, trip.endDate))}</span>
       </div>
       <section class="grid finance-summary">
-        ${summaryCard("receipt", "pink", "Total Expenses", summary.total)}
-        ${summaryCard("hand-coins", "blue", "You Paid", summary.paid)}
-        ${summaryCard("arrow-circle-up", "yellow", "You Owe", summary.owe)}
-        ${summaryCard("arrow-circle-down", "mint", "You Receive", summary.receive)}
+        ${summaryCard("receipt", "pink", "Trip total", summary.total)}
+        ${summaryCard("arrow-circle-up", "yellow", "You need to pay", summary.owe)}
+        ${summaryCard("arrow-circle-down", "mint", "You will receive", summary.receive)}
       </section>
       <section class="card finance-list-card">
         <div class="finance-section-title"><div><span class="eyebrow">Expenses</span><h2>Expense List</h2></div><span>${expenses.length} items</span></div>
         <div class="finance-expense-list">${expenseRows(trip.id, expenses)}</div>
       </section>
       <section class="settlement-wrap">
-        <div class="settlement-heading"><div><span class="eyebrow">Settle up</span><h2>Who pays whom</h2></div><span class="pill soft-pill"><i class="ph-duotone ph-calculator"></i> Optimized transfers</span></div>
+        <div class="settlement-heading"><div><span class="eyebrow">Settle up</span><h2>Who pays whom</h2><p>Follow each transfer below. Actions for your payments appear first.</p></div></div>
         <div class="settlement-grid">${settlementCards(trip.id)}</div>
       </section>
       <section class="card finance-list-card payment-history-card">
@@ -268,46 +245,30 @@ function expenseRows(tripId, expenses) {
 
 function settlementCards(tripId) {
   const currentUserId = typeof getCurrentUserId === "function" ? getCurrentUserId() : "";
-  const settlements = computeSettlements(tripId).filter((settlement) => !isSettlementCompleted(settlement));
-
-  if (!settlements.length) {
-    return `<article class="card settle-empty"><i class="ph-duotone ph-handshake"></i><div><strong>All clear</strong><p>No balances to settle.</p></div></article>`;
-  }
-
-  return settlements.map((settlement) => {
-    const from = memberById(settlement.from);
-    const to = memberById(settlement.to);
-    const payment = paymentForSettlement(settlement);
-    let action = `<span class="pill soft-pill">Between members</span>`;
-    let tone = "";
-
-    if (payment?.status === "pending") {
-      if (settlement.to === currentUserId) {
-        action = `<button class="btn soft small" onclick="verifyPayment('${escapeHTML(payment.id)}')"><i class="ph ph-check-circle"></i> Confirm received</button>`;
-      } else {
-        action = `<span class="pill yellow">Pending</span>`;
-      }
-      tone = "pending-settlement";
-    } else if (settlement.from === currentUserId) {
-      action = `<button class="btn primary small" onclick="openFinancePayment('${escapeHTML(tripId)}','${escapeHTML(settlement.from)}','${escapeHTML(settlement.to)}',${settlement.amount})"><i class="ph-duotone ph-qr-code"></i> Pay</button>`;
-      tone = "you-owe";
-    } else if (settlement.to === currentUserId) {
-      action = `<span class="pill yellow">Waiting</span>`;
-      tone = "incoming";
-    }
-
-    return `
-      <article class="settlement-card ${tone}">
-        <div class="settlement-people">
-          <img src="${from.avatar || avatarUrl(from.name)}" alt="${escapeHTML(from.name)}">
-          <i class="ph-bold ph-arrow-right"></i>
-          <img src="${to.avatar || avatarUrl(to.name)}" alt="${escapeHTML(to.name)}">
-        </div>
-        <div><strong>${escapeHTML(from.name)} pays ${escapeHTML(to.name)}</strong><p>${money(settlement.amount)}</p></div>
-        ${action}
-      </article>
-    `;
-  }).join("");
+  const settlements = computeSettlements(tripId);
+  const pending = getFinanceData().payments.filter(p=>p.tripId===tripId&&p.status==='pending');
+  const cards = [];
+  // Keep pending notices visible even if a new expense changes who owes whom.
+  pending.forEach(payment=>{
+    const from=memberById(payment.from),to=memberById(payment.to);
+    let action='<span class="pill yellow">Waiting for confirmation</span>';
+    if(payment.to===currentUserId)action=`<button class="btn soft small" onclick="verifyPayment('${escapeHTML(payment.id)}')">Confirm received</button>`;
+    const cancel=(payment.from===currentUserId||payment.to===currentUserId)
+      ?`<button class="btn soft small" onclick="cancelPayment('${escapeHTML(payment.id)}')">Cancel notice</button>`:'';
+    cards.push(`<article class="settlement-card pending-settlement"><div><strong>${escapeHTML(from.name)} → ${escapeHTML(to.name)}</strong><p>${money(payment.amount)} · Pending</p></div>${action}${cancel}</article>`);
+  });
+  settlements.sort((a,b)=>Number(b.from===currentUserId||b.to===currentUserId)-Number(a.from===currentUserId||a.to===currentUserId));
+  settlements.forEach(settlement=>{
+    const from=memberById(settlement.from),to=memberById(settlement.to);
+    const waiting=pending.some(p=>p.from===settlement.from&&p.to===settlement.to);
+    let action='<span class="pill soft-pill">Between members</span>';
+    if(waiting)action='<span class="pill yellow">Pending notice above</span>';
+    else if(settlement.from===currentUserId)
+      action=`<button class="btn primary small" onclick="openFinancePayment('${escapeHTML(tripId)}','${escapeHTML(settlement.from)}','${escapeHTML(settlement.to)}',${settlement.amount})"><i class="ph-duotone ph-paper-plane-tilt"></i> Notify payment</button>`;
+    else if(settlement.to===currentUserId)action='<span class="pill yellow">Waiting for payment</span>';
+    cards.push(`<article class="settlement-card ${settlement.from===currentUserId?'you-owe':'incoming'}"><div class="settlement-people"><img src="${escapeHTML(from.avatar||avatarUrl(from.name))}" alt="${escapeHTML(from.name)}"><i class="ph-bold ph-arrow-right"></i><img src="${escapeHTML(to.avatar||avatarUrl(to.name))}" alt="${escapeHTML(to.name)}"></div><div><strong>${escapeHTML(from.name)} pays ${escapeHTML(to.name)}</strong><p>${money(settlement.amount)}</p></div>${action}</article>`);
+  });
+  return cards.length?cards.join(''):'<article class="card settle-empty"><i class="ph-duotone ph-handshake"></i><div><strong>All clear</strong><p>No balances to settle.</p></div></article>';
 }
 
 function paymentHistory(tripId) {
@@ -320,7 +281,7 @@ function paymentHistory(tripId) {
     const from = memberById(payment.from);
     const to = memberById(payment.to);
     const statusClass = payment.status === "paid" ? "mint" : "yellow";
-    const statusText = payment.status === "paid" ? "Paid" : "Pending";
+    const statusText = payment.status === "paid" ? "Paid" : payment.status === "cancelled" ? "Cancelled" : "Pending";
     return `<div class="payment-history-row"><div><strong>${escapeHTML(from.name)} → ${escapeHTML(to.name)}</strong><small>${new Date(payment.createdAt).toLocaleString()}</small></div><strong>${money(payment.amount)}</strong><span class="pill ${statusClass}">${statusText}</span></div>`;
   }).join("");
 }
@@ -343,9 +304,10 @@ function populateExpenseTripSelect(trips, selectedTrip) {
 
 function openExpenseModal() {
   const selectedTrip=document.querySelector("[data-finance-trip].active")?.dataset.financeTrip;
-  if(!selectedTrip){demoToast("Create a trip first");return;}
-  if(financeReadonly(selectedTrip)){demoToast("Reopen this trip to add expenses");return;}
+  if(!selectedTrip){showToast("Create a trip first");return;}
+  if(financeReadonly(selectedTrip)){showToast("Reopen this trip to add expenses");return;}
   currentExpenseEditId = "";
+  document.getElementById("expenseTripSelect").disabled = false;
   const title = document.getElementById("expenseModalTitle");
   if (title) title.textContent = "Add Expense";
   document.getElementById("expenseTitle").value = "";
@@ -355,6 +317,10 @@ function openExpenseModal() {
   const active = document.querySelector("[data-finance-trip].active")?.dataset.financeTrip;
   if (active) document.getElementById("expenseTripSelect").value = active;
   renderExpenseParticipants();
+  const participants=financeMemberList(document.getElementById('expenseTripSelect').value);
+  const userId=typeof getCurrentUserId==='function'?getCurrentUserId():'';
+  if(participants.some(member=>member.id===userId))document.getElementById('expensePaidBy').value=userId;
+  document.getElementById('expenseAdvancedSplit').open=false;
   openModal("expenseModal");
 }
 
@@ -380,10 +346,14 @@ function selectedExpenseParticipants() {
   return [...document.querySelectorAll("#expenseParticipants input:checked")].map((input) => input.value);
 }
 
-function renderSplitFields(savedShares = {}) {
+function renderSplitFields(savedShares = null) {
   const box = document.getElementById("splitDetailFields");
   if (!box) return;
   const type = document.getElementById("expenseSplitType")?.value || "equal";
+  const existingShares={};
+  if(savedShares===null && box.dataset.splitType===type){box.querySelectorAll('[data-split-member]').forEach(input=>{existingShares[input.dataset.splitMember]=input.value;});}
+  const sharesToShow=savedShares??existingShares;
+  box.dataset.splitType=type;
   const participants = selectedExpenseParticipants();
   const amount = Number(document.getElementById("expenseAmount")?.value || 0);
 
@@ -399,12 +369,26 @@ function renderSplitFields(savedShares = {}) {
   }
 
   const label = type === "percentage" ? "%" : "฿";
-  const defaultValue = type === "percentage" ? roundMoney(100 / participants.length) : roundMoney(amount / participants.length);
-  box.innerHTML = participants.map((id) => {
+  const defaultTotalCents = Math.round((type === "percentage" ? 100 : amount) * 100);
+  const baseCents = Math.floor(defaultTotalCents / participants.length);
+  const extraCents = defaultTotalCents % participants.length;
+  box.innerHTML = participants.map((id, index) => {
     const member = memberById(id);
-    const value = savedShares[id] ?? defaultValue;
+    const defaultValue = (baseCents + (index < extraCents ? 1 : 0)) / 100;
+    const value = sharesToShow[id] ?? defaultValue;
     return `<label class="split-input-row"><span>${escapeHTML(member.name)}</span><div><span>${label}</span><input type="number" min="0" step="0.01" data-split-member="${id}" value="${value}"></div></label>`;
-  }).join("");
+  }).join("") + `<p class="form-hint" id="expenseSplitTotal" role="status" aria-live="polite"></p>`;
+  updateSplitInputSummary();
+}
+
+function updateSplitInputSummary() {
+  const status=document.getElementById('expenseSplitTotal');if(!status)return;
+  const type=document.getElementById('expenseSplitType').value;
+  const total=[...document.querySelectorAll('[data-split-member]')].reduce((sum,input)=>sum+Number(input.value||0),0);
+  const expected=type==='percentage'?100:Number(document.getElementById('expenseAmount')?.value||0);
+  const diff=roundMoney(expected-total),valid=Math.abs(diff)<0.011;
+  status.textContent=valid?'Total is correct':`Remaining to allocate: ${type==='percentage'?`${diff.toFixed(2)}%`:money(diff)}`;
+  status.classList.toggle('error-text',!valid);
 }
 
 function collectExpenseShares(type, participants) {
@@ -426,17 +410,17 @@ async function saveExpenseForm(event) {
   const splitType = document.getElementById("expenseSplitType")?.value || "equal";
   const participants = selectedExpenseParticipants();
   const shares = collectExpenseShares(splitType, participants);
-  if (!tripId || !title || amount <= 0 || !paidBy || !participants.length) {demoToast("Complete all expense details");return;}
-  if(financeReadonly(tripId)){demoToast("This trip is finished");return;}
-  if(splitType==="percentage" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-100)>0.05){demoToast("Percentages must add to 100%");return;}
-  if(splitType==="custom" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-amount)>0.01){demoToast("Custom shares must equal the total");return;}
+  if (!tripId || !title || amount <= 0 || !paidBy || !participants.length) {showToast("Complete all expense details");return;}
+  if(financeReadonly(tripId)){showToast("This trip is finished");return;}
+  if(splitType==="percentage" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-100)>0.05){showToast("Percentages must add to 100%");return;}
+  if(splitType==="custom" && Math.abs(Object.values(shares).reduce((a,b)=>a+Number(b),0)-amount)>0.01){showToast("Custom shares must equal the total");return;}
   const data={title,amount,paidBy,category,splitType,participants,shares};
   const editId=currentExpenseEditId;
   try{
     await apiJson(`/api/trips/${tripId}/expenses${editId?`/${editId}`:''}`,editId?'PUT':'POST',data);
     await loadFinanceFromDatabase();currentExpenseEditId="";closeModal("expenseModal");renderFinancePage();selectFinanceTrip(tripId);
-    demoToast(editId?"Expense updated":"Expense added");
-  }catch(e){demoToast(e.message);}
+    showToast(editId?"Expense updated":"Expense added");
+  }catch(e){showToast(e.message);}
 }
 
 function editExpense(tripId, expenseId) {
@@ -445,6 +429,7 @@ function editExpense(tripId, expenseId) {
   currentExpenseEditId = expense.id;
   document.getElementById("expenseModalTitle").textContent = "Edit Expense";
   document.getElementById("expenseTripSelect").value = tripId;
+  document.getElementById("expenseTripSelect").disabled = true;
   document.getElementById("expenseTitle").value = expense.title;
   document.getElementById("expenseAmount").value = expense.amount;
   document.getElementById("expenseCategory").value = expense.category || "Other";
@@ -452,13 +437,14 @@ function editExpense(tripId, expenseId) {
   renderExpenseParticipants(expense.participants, expense.shares || {});
   document.getElementById("expensePaidBy").value = expense.paidBy;
   renderSplitFields(expense.shares || {});
+  document.getElementById('expenseAdvancedSplit').open=(expense.splitType||'equal')!=='equal';
   openModal("expenseModal");
 }
 
 async function deleteExpense(tripId, expenseId) {
   if(financeReadonly(tripId)||!confirm("Delete this expense?"))return;
-  try{await apiRequest(`/api/trips/${tripId}/expenses/${expenseId}`,{method:'DELETE'});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(tripId);demoToast("Expense deleted");}
-  catch(e){demoToast(e.message);}
+  try{await apiRequest(`/api/trips/${tripId}/expenses/${expenseId}`,{method:'DELETE'});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(tripId);showToast("Expense deleted");}
+  catch(e){showToast(e.message);}
 }
 
 function openFinancePayment(tripId, from, to, amount) {
@@ -467,28 +453,26 @@ function openFinancePayment(tripId, from, to, amount) {
   paymentSlipData = "";
   document.getElementById("payRecipient").textContent = recipient.name;
   document.getElementById("payAmount").textContent = money(amount);
-  document.getElementById("payPromptPay").textContent = recipient.promptpay || "Not added";
-  document.getElementById("payBank").textContent = recipient.bankName && recipient.bankAccount ? `${recipient.bankName} · ${recipient.bankAccount}` : "Not added";
+  const amountField=document.getElementById('payPartialAmount');
+  if(amountField){amountField.value=roundMoney(amount).toFixed(2);amountField.max=roundMoney(amount).toFixed(2);}
+  const hasPromptPay=!!recipient.promptpay;
+  document.getElementById("payPromptPay").textContent = recipient.promptpay || "Ask your friend for payment details";
+  document.getElementById("payCopyPromptPay").disabled=!hasPromptPay;
   document.getElementById("slipPreview").innerHTML = `<i class="ph-duotone ph-image-square"></i><span>No slip selected</span>`;
   document.getElementById("paymentSlip").value = "";
-  renderDemoPaymentCode(recipient, amount);
   openModal("payModal");
-}
-
-function renderDemoPaymentCode(recipient, amount) {
- const box=document.getElementById("paymentCode");if(box){box.innerHTML='<p class="muted">Use your bank app and the payment details below. This app does not generate a bank QR code.</p>';box.classList.add('payment-code-message');}
 }
 
 function copyPaymentInfo(type) {
   if (!activePayment) return;
   const recipient = memberById(activePayment.to);
-  const value = type === "bank" ? `${recipient.bankName || ""} ${recipient.bankAccount || ""}`.trim() : recipient.promptpay || "";
+  const value = recipient.promptpay || "";
   if (!value) {
-    demoToast("Payment info has not been added");
+    showToast("Payment info has not been added");
     return;
   }
-  navigator.clipboard?.writeText(value);
-  demoToast("Payment info copied");
+  if(!navigator.clipboard?.writeText){showToast('Copy not available in this browser');return;}
+  navigator.clipboard.writeText(value).then(()=>showToast('PromptPay copied')).catch(()=>showToast('Could not copy PromptPay'));
 }
 
 async function previewPaymentSlip(event) {
@@ -508,22 +492,33 @@ async function previewPaymentSlip(event) {
     if (preview) preview.innerHTML = `<img src="${paymentSlipData}" alt="Payment slip preview">`;
   } catch {
     paymentSlipData = "";
-    demoToast("Could not read this slip");
+    showToast("Could not read this slip");
   }
 }
 
 async function submitPayment() {
   if(!activePayment)return;
   const payment={...activePayment};
-  if(String(payment.from)!==String(getCurrentUserId())){demoToast('Only the payer can submit a payment');return;}
+  if(String(payment.from)!==String(getCurrentUserId())){showToast('Only the payer can submit a payment');return;}
+  const amountInput=document.getElementById('payPartialAmount');
+  const value=amountInput?Number(amountInput.value):payment.amount;
+  if(amountInput&&!amountInput.value.trim()){showToast('Enter the amount you transferred');return;}
+  if(!Number.isFinite(value)||value<=0||roundMoney(value)>payment.amount){showToast('Enter a positive amount up to the balance owed');return;}
+  payment.amount=roundMoney(value);
   try{await apiJson(`/api/trips/${payment.tripId}/payments`,'POST',{...payment,slip:paymentSlipData});
-    await loadFinanceFromDatabase();closeModal('payModal');activePayment=null;renderFinancePage();selectFinanceTrip(payment.tripId);demoToast('Payment submitted for confirmation');
-  }catch(e){demoToast(e.message);}
+    await loadFinanceFromDatabase();closeModal('payModal');activePayment=null;renderFinancePage();selectFinanceTrip(payment.tripId);showToast('Payment submitted for confirmation');
+  }catch(e){showToast(e.message);}
 }
 async function verifyPayment(paymentId) {
  const payment=getFinanceData().payments.find(p=>p.id===String(paymentId));if(!payment)return;
- try{await apiJson(`/api/trips/${payment.tripId}/payments/${payment.id}/verify`,'PATCH',{});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(payment.tripId);demoToast('Payment confirmed');}
- catch(e){demoToast(e.message);}
+ try{await apiJson(`/api/trips/${payment.tripId}/payments/${payment.id}/verify`,'PATCH',{});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(payment.tripId);showToast('Payment confirmed');}
+ catch(e){showToast(e.message);}
+}
+
+async function cancelPayment(paymentId){
+ const payment=getFinanceData().payments.find(p=>p.id===String(paymentId));if(!payment||!confirm('Cancel this pending payment notice?'))return;
+ try{await apiJson(`/api/trips/${payment.tripId}/payments/${payment.id}/cancel`,'PATCH',{});await loadFinanceFromDatabase();renderFinancePage();selectFinanceTrip(payment.tripId);showToast('Payment notice cancelled');}
+ catch(e){showToast(e.message);}
 }
 
 function updateFinanceOverview() {
@@ -538,4 +533,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("expenseAmount")?.addEventListener("input", () => renderSplitFields());
   document.getElementById("expenseSplitType")?.addEventListener("change", () => renderSplitFields());
   document.getElementById("expenseTripSelect")?.addEventListener("change", () => {selectFinanceTrip(document.getElementById("expenseTripSelect").value);renderExpenseParticipants();});
+  document.getElementById('splitDetailFields')?.addEventListener('input',updateSplitInputSummary);
 });

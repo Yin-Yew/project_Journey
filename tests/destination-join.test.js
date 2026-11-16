@@ -16,5 +16,7 @@ test('vote page has no join form or invite-code field',()=>{
  const fs=require('node:fs'),path=require('node:path');
  const html=fs.readFileSync(path.join(__dirname,'../public/voting.html'),'utf8');
  assert.doesNotMatch(html,/jjPollJoinForm|jjPollJoinCode/);
- assert.match(html,/Public Voting Polls/);
+ assert.match(html,/id="jjNextForm"/);
+ assert.match(html,/id="jjNextList"/);
+ assert.doesNotMatch(html,/jjPollCreateModal|jjVoteOptionModal|Create Poll|Photo URL/);
 });

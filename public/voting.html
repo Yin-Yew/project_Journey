@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>
-   Next Trip Vote · JoyJourney
-  </title>
+<title>Next Trip Vote · JoyJourney</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -109,13 +107,13 @@
 <div class="top-actions">
 <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
 <a class="user-chip" href="profile.html">
-<img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+<img alt="Profile avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Traveler&amp;backgroundColor=ffd5dc"/>
 <span>
 <strong>
-        Yin
+        Traveler
        </strong>
 <small>
-        Beach Explorer
+        Traveler
        </small>
 </span>
 <i class="ph ph-caret-down">
@@ -124,12 +122,63 @@
 </div>
 </header>
 <div class="content jj-workspace" id="jjVotingPage">
-<section class="page-head playful-head"><div><span class="eyebrow">Your next adventure starts here</span><h1>Next Trip Vote</h1><p class="page-subtitle">Vote on where to go next, before you create a trip.</p></div><button class="btn primary" type="button" id="jjVoteCreate"><i class="ph-bold ph-plus"></i> Create Poll</button></section>
-<div class="jj-voting-layout"><aside class="card jj-poll-list"><h2>Public Voting Polls</h2><p class="jj-poll-sub">Everyone with a JoyJourney account can vote</p><div id="jjVotePolls"><p>Loading polls…</p></div></aside>
-<section id="jjVoteDetail" class="jj-vote-detail"><p class="jj-loading">Loading…</p></section></div></div>
+  <section class="page-head playful-head">
+    <div><span class="eyebrow">Plan the next adventure together</span><h1>Next Trip Vote</h1>
+      <p class="page-subtitle">ทริปหน้าไปไหนดี? เพิ่มสถานที่ที่อยากไป แล้วให้เพื่อน ๆ โหวตกันได้เลย</p>
+    </div>
+  </section>
+  <section class="card jj-next-schedule" aria-label="กำหนดเวลาโหวต">
+    <div class="jj-next-section-header">
+      <div><h2>เวลาโหวต</h2><p>กำหนดเวลาเริ่มและเวลาปิดรับคะแนน</p></div>
+      <span id="jjNextPhase" class="pill soft-pill">กำลังโหลด...</span>
+    </div>
+    <div class="jj-next-dates">
+      <div><span><i class="ph-duotone ph-play-circle"></i> เริ่มโหวต</span><strong id="jjNextStart">—</strong></div>
+      <div><span><i class="ph-duotone ph-clock-countdown"></i> สิ้นสุดโหวต</span><strong id="jjNextEnd">—</strong></div>
+    </div>
+    <form id="jjNextScheduleForm" class="jj-next-time-form" hidden>
+      <div class="jj-next-time-fields">
+        <label>เริ่มโหวต<input id="jjNextStartInput" type="datetime-local" required/></label>
+        <label>สิ้นสุดโหวต<input id="jjNextEndInput" type="datetime-local" required/></label>
+      </div>
+      <button type="submit" class="btn soft"><i class="ph-bold ph-floppy-disk"></i> บันทึกเวลาโหวต</button>
+    </form>
+    <p id="jjNextScheduleHint" class="jj-next-guide">กำลังโหลดช่วงเวลา...</p>
+    <details class="jj-next-round-panel" id="jjNextNewRound" hidden>
+      <summary><i class="ph-duotone ph-arrow-clockwise"></i> เริ่มโหวตรอบใหม่ (เก็บผลรอบเก่า)</summary>
+      <form id="jjNextRoundForm" class="jj-next-time-form">
+        <div class="jj-next-time-fields">
+          <label>รอบใหม่เริ่ม<input id="jjNextRoundStart" type="datetime-local" required/></label>
+          <label>รอบใหม่สิ้นสุด<input id="jjNextRoundEnd" type="datetime-local" required/></label>
+        </div>
+        <p class="jj-next-guide">ระบบจะปิดรอบปัจจุบัน เก็บผลคะแนนไว้ในประวัติ แล้วเปิดกระดานใหม่ให้ทุกคนเพิ่มสถานที่และโหวตใหม่</p>
+        <button class="btn primary" type="submit">ยืนยันเริ่มรอบใหม่</button>
+      </form>
+    </details>
+  </section>
+  <section class="card jj-next-entry" aria-labelledby="jjNextEntryTitle">
+    <div class="jj-next-intro"><span class="jj-next-intro-icon"><i class="ph-duotone ph-globe-hemisphere-east"></i></span>
+      <div><h2 id="jjNextEntryTitle">อยากไปที่ไหน?</h2><p>พิมพ์แค่ชื่อจังหวัด เมือง หรือประเทศ ไม่ต้องสร้างโพลหรือทริปก่อน</p></div>
+    </div>
+    <form id="jjNextForm" class="jj-next-form">
+      <label class="jj-next-input-label" for="jjNextDestination">ชื่อสถานที่</label>
+      <div class="jj-next-input-row"><input id="jjNextDestination" name="name" type="text" required minlength="2" maxlength="150" autocomplete="off" placeholder="เช่น เชียงใหม่, ญี่ปุ่น, ภูเก็ต…"/>
+      <button id="jjNextAddButton" type="submit" class="btn primary"><i class="ph-bold ph-plus"></i> เพิ่มสถานที่</button></div>
+    </form>
+    <p class="jj-next-guide"><i class="ph-duotone ph-users-three"></i> ทุกคนที่ล็อกอินเพิ่มสถานที่ได้และโหวตได้คนละ 1 คะแนน · ไม่มีใครเห็นว่าใครโหวตให้ที่ไหน</p>
+    <p id="jjNextMessage" class="jj-next-message" role="status" aria-live="polite"></p>
+  </section>
+  <section class="jj-next-section" aria-labelledby="jjNextResultsTitle">
+    <div class="jj-next-section-header"><div><h2 id="jjNextResultsTitle">สถานที่ที่เพื่อน ๆ เสนอ</h2><p id="jjNextCount">กำลังโหลดคะแนน...</p></div>
+      <button id="jjNextRefresh" class="btn soft" type="button" title="อัปเดตคะแนนล่าสุด"><i class="ph-duotone ph-arrows-clockwise"></i> รีเฟรช</button></div>
+    <div class="jj-next-grid" id="jjNextList" aria-live="polite"><p class="jj-loading">กำลังโหลดสถานที่...</p></div>
+  </section>
+  <section class="jj-next-section" aria-labelledby="jjNextHistoryTitle">
+    <div class="jj-next-section-header"><div><h2 id="jjNextHistoryTitle">ประวัติรอบโหวต</h2><p>ผลโหวตเก่าจะอยู่ตรงนี้เสมอ ไม่มีรายชื่อคนโหวต</p></div></div>
+    <div id="jjNextHistory" class="jj-next-history" aria-live="polite"><p class="jj-loading">กำลังโหลดประวัติ...</p></div>
+  </section>
+</div>
 </main>
-<div class="modal" id="jjPollCreateModal" role="dialog" aria-modal="true" aria-labelledby="jjPollCreateTitle"><div class="card jj-editor"><div class="jj-editor-header"><h2 id="jjPollCreateTitle">Create a voting poll</h2><button type="button" class="jj-close" aria-label="Close" data-poll-close="jjPollCreateModal">✕</button></div><form id="jjPollCreateForm" class="jj-edit-form"><label>Poll title <input name="title" maxlength="150" required placeholder="Where should our next trip be?"></label><p>Every signed-in JoyJourney user can see and vote in this poll. No invite codes.</p><div class="jj-form-buttons"><button type="button" class="btn soft" data-poll-close="jjPollCreateModal">Cancel</button><button class="btn primary" type="submit">Create Poll</button></div></form></div></div>
-<div class="modal" id="jjVoteOptionModal" role="dialog" aria-modal="true" aria-labelledby="jjVoteOptionModalTitle"><div class="card jj-editor"><div class="jj-editor-header"><h2 id="jjVoteOptionModalTitle">Suggest a destination</h2><button type="button" class="jj-close" aria-label="Close" data-poll-close="jjVoteOptionModal">✕</button></div><form id="jjVoteOptionForm" class="jj-edit-form"><input name="optionId" type="hidden"><label>Destination <input name="name" maxlength="150" required placeholder="Chiang Mai / Japan / Phuket"></label><label>Why should we go? <textarea name="details" maxlength="1000" rows="3" placeholder="Things to see or reasons to go"></textarea></label><label>Photo URL (optional, HTTPS) <input name="image" type="url" maxlength="1500" placeholder="https://example.com/photo.jpg"></label><div class="jj-form-buttons"><button type="button" class="btn soft" data-poll-close="jjVoteOptionModal">Cancel</button><button class="btn primary" type="submit">Save Destination</button></div></form></div></div>
 <div class="toast" id="toast">
    Done
   </div>

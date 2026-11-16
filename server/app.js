@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({path:require('path').join(__dirname,'.env')});
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
@@ -29,7 +29,7 @@ app.use((req,res,next)=>{res.set({'X-Content-Type-Options':'nosniff','Referrer-P
 const run = (sql,params=[]) => pool.execute(sql,params);
 const fail = (res,status,message) => res.status(status).json({error:message});
 const wrap = fn => (req,res,next) => Promise.resolve(fn(req,res,next)).catch(next);
-const safeUser = u => ({id:String(u.id),name:u.name,email:u.email,username:u.username,avatar:u.avatar,style:u.travel_style,promptpay:u.promptpay,bankName:u.bank_name,bankAccount:u.bank_account});
+const safeUser = u => ({id:String(u.id),name:u.name,email:u.email,username:u.username,avatar:u.avatar,style:u.travel_style,promptpay:u.promptpay});
 const dateText = d => d instanceof Date ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : String(d || '').slice(0,10);
 const tripDTO = t => ({id:String(t.id),name:t.name,destination:t.destination||'',startDate:dateText(t.start_date),endDate:dateText(t.end_date),budget:Number(t.budget),cover:t.cover_url||'',inviteCode:t.invite_code,status:t.status,ownerId:String(t.owner_id),role:t.role || 'member',memberCount:Number(t.member_count || 1),activityCount:Number(t.activity_count || 0)});
 const validateTrip = body => {
@@ -84,7 +84,7 @@ app.post('/api/auth/logout',...protect(async(req,res)=>{const token=req.get('aut
 app.patch('/api/auth/me',...protect(async(req,res)=>{
   const name=String(req.body.name||'').trim(),email=String(req.body.email||'').trim().toLowerCase();
   if(name.length<2||name.length>100||!/^\S+@\S+\.\S+$/.test(email)) return fail(res,400,'Invalid profile.');
-  await run('UPDATE users SET name=?,email=?,username=?,travel_style=?,promptpay=?,bank_name=?,bank_account=?,avatar=? WHERE id=?',[name,email, String(req.body.username||'').slice(0,80)||null,String(req.body.style||'').slice(0,100),String(req.body.promptpay||'').slice(0,30),String(req.body.bankName||'').slice(0,80),String(req.body.bankAccount||'').slice(0,100),String(req.body.avatar||'').slice(0,500)||null,req.user.id]);
+  await run('UPDATE users SET name=?,email=?,username=?,travel_style=?,promptpay=?,avatar=? WHERE id=?',[name,email, String(req.body.username??req.user.username??'').slice(0,80)||null,String(req.body.style||'').slice(0,100),String(req.body.promptpay||'').slice(0,30),String(req.body.avatar||'').slice(0,500)||null,req.user.id]);
   const [rows]=await run('SELECT * FROM users WHERE id=?',[req.user.id]);res.json({user:safeUser(rows[0])});
 }));
 app.get('/api/trips',...protect(async(req,res)=>{
@@ -125,8 +125,8 @@ app.post('/api/trips/join',...protect(async(req,res)=>{
 }));
 app.get('/api/trips/:id',...protect(async(req,res)=>{
  const trip=await membership(req,res);if(!trip)return;
- const [members]=await run('SELECT u.id,u.name,u.email,u.avatar,tm.role FROM trip_members tm JOIN users u ON tm.user_id=u.id WHERE tm.trip_id=? ORDER BY (tm.role="owner") DESC,tm.joined_at',[trip.id]);
- res.json({trip:tripDTO(trip),members:members.map(m=>({id:String(m.id),name:m.name,email:m.email,avatar:m.avatar,role:m.role}))});
+ const [members]=await run('SELECT u.id,u.name,u.email,u.avatar,u.promptpay,tm.role FROM trip_members tm JOIN users u ON tm.user_id=u.id WHERE tm.trip_id=? ORDER BY (tm.role="owner") DESC,tm.joined_at',[trip.id]);
+ res.json({trip:tripDTO(trip),members:members.map(m=>({id:String(m.id),name:m.name,email:m.email,avatar:m.avatar,promptpay:m.promptpay||'',role:m.role}))});
 }));
 app.patch('/api/trips/:id',...protect(async(req,res)=>{
  const trip=await membership(req,res,true);if(!trip)return;
@@ -142,6 +142,7 @@ app.patch('/api/trips/:id/status',...protect(async(req,res)=>{
 }));
 app.delete('/api/trips/:id',...protect(async(req,res)=>{
  const trip=await membership(req,res,true);if(!trip)return;
+ if(String(req.body?.confirmName||'')!==trip.name)return fail(res,400,'Type the exact trip name to confirm permanent deletion.');
  const [pictures]=await run('SELECT filename FROM memories WHERE trip_id=?',[trip.id]);
  await run('DELETE FROM trips WHERE id=?',[trip.id]);
  for(const picture of pictures)require('fs/promises').unlink(path.join(__dirname,'../uploads/memories',path.basename(picture.filename))).catch(()=>{});
@@ -191,6 +192,7 @@ require('./checklist')(app,{run,protect,membership,fail});
 require('./trip-features')(app,{run,pool,protect,membership,fail,dateText});
 require('./planner-places')(app,{run,pool,protect,membership,fail,dateText});
 require('./destination-votes')(app,{run,pool,protect,fail});
+require('./next-trip')(app,{run,pool,protect,fail});
 app.get('/api/health',wrap(async(req,res)=>{await run('SELECT 1');res.json({app:'JoyJourney',status:'ok',database:'connected'});}));
 app.use('/api',(req,res)=>fail(res,404,'API route not found.'));
 app.use(express.static(path.join(__dirname,'../public')));
@@ -200,5 +202,7 @@ app.use((error,req,res,next)=>{
  if(error.code==='ER_NO_SUCH_TABLE'||error.code==='ER_BAD_FIELD_ERROR')return fail(res,503,'Database schema is missing or outdated. Import database/schema.sql.');
  return fail(res,500,'Server error. Check database configuration and logs.');
 });
-if(require.main===module)app.listen(PORT,()=>console.log(`JoyJourney running at http://localhost:${PORT}`));
+if(require.main===module){
+ app.listen(PORT,()=>console.log(`JoyJourney running at http://localhost:${PORT}`));
+}
 module.exports=app;

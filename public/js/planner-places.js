@@ -14,7 +14,7 @@ const jjChooseTrip = (node,tripId) => {
  node.value=chosen;return chosen;
 };
 function jjNoTrips(container){container.innerHTML='<div class="card jj-empty-state"><h3>No trips yet</h3><p>Create or join a trip first to plan activities or save places.</p><a class="btn primary" href="trips.html">Go to My Trips</a></div>';}
-function jjWorkspaceError(error){demoToast(error?.message||'Unexpected error');}
+function jjWorkspaceError(error){showToast(error?.message||'Unexpected error');}
 function jjShowDialog(id){document.getElementById(id)?.classList.add('open');document.querySelector(`#${id} input:not([type=file])`)?.focus();}
 function jjHideDialog(id){document.getElementById(id)?.classList.remove('open');}
 function jjInitModals(){
@@ -24,17 +24,35 @@ function jjInitModals(){
 }
 function jjDrawPlanner(){
  const container=document.getElementById('jjPlannerBody'),trip=getTripById(jjPlan.tripId);if(!container)return;
- if(!trip){jjNoTrips(container);return;}
+ if(!trip){const button=document.getElementById('jjTripStatusButton');if(button)button.hidden=true;jjNoTrips(container);return;}
  const days=jjNumberDays(trip);
  if(jjPlan.day>days)jjPlan.day=1;
  const dayList=jjPlan.activities.filter(a=>a.day===jjPlan.day);
  const readOnly=trip.status==='finished';
+ const statusButton=document.getElementById('jjTripStatusButton');
+ if(statusButton){statusButton.hidden=trip.role!=='owner';statusButton.disabled=false;statusButton.textContent=readOnly?'Set Active':'Mark as Finished';statusButton.classList.toggle('primary',readOnly);statusButton.classList.toggle('soft',!readOnly);}
  document.getElementById('jjAddActivity').disabled=readOnly;
  document.getElementById('jjPlannerSummary').textContent=`${days} day${days===1?'':'s'} · ${jjPlan.activities.length} activit${jjPlan.activities.length===1?'y':'ies'} · ${readOnly?'Finished · read only':'Active'}`;
  container.innerHTML=`<div class="jj-section-heading"><div><span class="pill pink">${jjSafe(trip.name)}</span><h2>Daily itinerary</h2><p>${jjSafe(formatTripDate(trip.startDate,trip.endDate))}</p></div><strong>${jjPlan.activities.length} activities</strong></div>
  <div class="jj-day-tabs" role="tablist" aria-label="Trip days">${Array.from({length:days},(_,n)=>`<button type="button" role="tab" aria-selected="${jjPlan.day===n+1}" class="${jjPlan.day===n+1?'active':''}" data-jj-day="${n+1}">Day ${n+1}<small>${jjSafe(jjDateForDay(trip.startDate,n+1))}</small></button>`).join('')}</div>
  <div class="jj-day-heading"><h3>Day ${jjPlan.day}</h3><span>${dayList.length} activities · ${jjSafe(jjDateForDay(trip.startDate,jjPlan.day))}</span></div>
  <div class="jj-activity-list">${dayList.length?dayList.map((a,i)=>`<article class="jj-activity-row card" data-jj-activity="${a.id}"><time>${jjSafe(a.time)}</time><div class="jj-activity-data"><h3>${jjSafe(a.title)}</h3>${a.location?`<p>${jjIcon('map-pin')} ${jjSafe(a.location)}</p>`:''}${a.details?`<p class="jj-activity-details">${jjSafe(a.details)}</p>`:''}</div>${!readOnly?`<div class="jj-activity-actions"><button type="button" data-jj-move="up" data-jj-id="${a.id}" aria-label="Move ${jjSafe(a.title)} up" ${i===0?'disabled':''}>${jjIcon('arrow-up')}</button><button type="button" data-jj-move="down" data-jj-id="${a.id}" aria-label="Move ${jjSafe(a.title)} down" ${i===dayList.length-1?'disabled':''}>${jjIcon('arrow-down')}</button><button type="button" data-jj-edit-activity="${a.id}" aria-label="Edit ${jjSafe(a.title)}">${jjIcon('pencil')}</button><button type="button" data-jj-delete-activity="${a.id}" aria-label="Delete ${jjSafe(a.title)}">${jjIcon('trash')}</button></div>`:''}</article>`).join(''):`<div class="jj-empty-state">${jjIcon('calendar-plus')}<h3>No activities on Day ${jjPlan.day}</h3><p>${readOnly?'This day had no planned activities.':'Use Add Activity to plan this day.'}</p></div>`}</div>`;
+}
+async function jjSetPlannerTripStatus(){
+ const trip=getTripById(jjPlan.tripId),button=document.getElementById('jjTripStatusButton');
+ if(!trip||trip.role!=='owner'||!button)return;
+ const nextStatus=trip.status==='finished'?'active':'finished';
+ if(nextStatus==='finished'&&!confirm('Mark this trip as finished? Members will no longer be able to edit its activities.'))return;
+ button.disabled=true;
+ try{
+  const result=await apiJson(`/api/trips/${encodeURIComponent(trip.id)}/status`,'PATCH',{status:nextStatus});
+  const updated=result.trip||{...trip,status:nextStatus};
+  Object.assign(trip,updated);
+  const selector=document.getElementById('jjPlannerTrip');
+  if(selector)jjChooseTrip(selector,trip.id);
+  jjDrawPlanner();
+  showToast(nextStatus==='active'?'Trip is now Active':'Trip marked as Finished');
+ }catch(error){jjWorkspaceError(error);button.disabled=false;}
 }
 async function jjLoadActivities(){
  const id=jjPlan.tripId,container=document.getElementById('jjPlannerBody');if(!id){jjDrawPlanner();return;}
@@ -43,7 +61,7 @@ async function jjLoadActivities(){
  catch(e){if(seq===jjPlan.loading){container.innerHTML=`<p class="form-message error">${jjSafe(e.message)}</p>`;jjWorkspaceError(e);}}
 }
 function jjOpenActivity(id){
- const trip=getTripById(jjPlan.tripId);if(!trip||trip.status==='finished'){demoToast('Finished trips are read-only');return;}
+ const trip=getTripById(jjPlan.tripId);if(!trip||trip.status==='finished'){showToast('Finished trips are read-only');return;}
  const a=jjPlan.activities.find(x=>x.id===String(id));jjPlan.editId=a?.id||null;
  const form=document.getElementById('jjActivityForm');form.reset();
  form.elements.title.value=a?.title||'';form.elements.time.value=a?.time||'09:00';form.elements.location.value=a?.location||'';form.elements.details.value=a?.details||'';
@@ -55,7 +73,7 @@ async function jjSaveActivity(event){
  const data={title:form.elements.title.value.trim(),time:form.elements.time.value,day:Number(form.elements.day.value),location:form.elements.location.value.trim(),details:form.elements.details.value.trim()};
  if(!data.title)return;
  button.disabled=true;
- try{const endpoint=`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities`;await apiJson(jjPlan.editId?`${endpoint}/${jjPlan.editId}`:endpoint,jjPlan.editId?'PUT':'POST',data);jjPlan.day=data.day;jjHideDialog('jjActivityModal');await jjLoadActivities();demoToast('Activity saved');}
+ try{const endpoint=`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities`;await apiJson(jjPlan.editId?`${endpoint}/${jjPlan.editId}`:endpoint,jjPlan.editId?'PUT':'POST',data);jjPlan.day=data.day;jjHideDialog('jjActivityModal');await jjLoadActivities();showToast('Activity saved');}
  catch(e){jjWorkspaceError(e);}finally{button.disabled=false;}
 }
 async function jjHandlePlanClick(event){
@@ -63,14 +81,14 @@ async function jjHandlePlanClick(event){
  const edit=event.target.closest('[data-jj-edit-activity]');if(edit){jjOpenActivity(edit.dataset.jjEditActivity);return;}
  const del=event.target.closest('[data-jj-delete-activity]');if(del){
   const id=del.dataset.jjDeleteActivity;const a=jjPlan.activities.find(x=>x.id===id);if(!a||!confirm(`Delete "${a.title}"?`))return;
-  del.disabled=true;try{await apiRequest(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/${id}`,{method:'DELETE'});await jjLoadActivities();demoToast('Activity deleted');}catch(e){jjWorkspaceError(e);del.disabled=false;}return;
+  del.disabled=true;try{await apiRequest(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/${id}`,{method:'DELETE'});await jjLoadActivities();showToast('Activity deleted');}catch(e){jjWorkspaceError(e);del.disabled=false;}return;
  }
  const move=event.target.closest('[data-jj-move]');if(!move)return;
  const list=jjPlan.activities.filter(a=>a.day===jjPlan.day),from=list.findIndex(a=>a.id===move.dataset.jjId),to=from+(move.dataset.jjMove==='up'?-1:1);
  if(from<0||to<0||to>=list.length)return;
  [list[from],list[to]]=[list[to],list[from]];
  move.disabled=true;
- try{await apiJson(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/reorder/day`,'PUT',{day:jjPlan.day,ids:list.map(a=>a.id)});await jjLoadActivities();demoToast('Order updated');}
+ try{await apiJson(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/reorder/day`,'PUT',{day:jjPlan.day,ids:list.map(a=>a.id)});await jjLoadActivities();showToast('Order updated');}
  catch(e){await jjLoadActivities();jjWorkspaceError(e);}
 }
 function jjDrawPlaces(){
@@ -92,7 +110,7 @@ async function jjLoadPlaces(){
  catch(e){if(seq===jjPlaces.loading){container.innerHTML=`<p class="form-message error">${jjSafe(e.message)}</p>`;jjWorkspaceError(e);}}
 }
 function jjOpenPlace(id){
- const trip=getTripById(jjPlaces.tripId);if(!trip||trip.status==='finished'){demoToast('Finished trips are read-only');return;}
+ const trip=getTripById(jjPlaces.tripId);if(!trip||trip.status==='finished'){showToast('Finished trips are read-only');return;}
  const p=jjPlaces.places.find(x=>x.id===String(id));jjPlaces.editId=p?.id||null;jjPlaces.oldImage=p?.image||'';
  const form=document.getElementById('jjPlaceForm');form.reset();form.elements.name.value=p?.name||'';form.elements.category.value=p?.category||'attraction';form.elements.details.value=p?.details||'';
  if(p?.image?.startsWith('https://'))form.elements.imageUrl.value=p.image;
@@ -110,19 +128,20 @@ async function jjSavePlace(event){
   const data={name:form.elements.name.value.trim(),category:form.elements.category.value,details:form.elements.details.value.trim(),image};
   const endpoint=`/api/trips/${encodeURIComponent(jjPlaces.tripId)}/places`;
   await apiJson(jjPlaces.editId?`${endpoint}/${jjPlaces.editId}`:endpoint,jjPlaces.editId?'PUT':'POST',data);
-  jjHideDialog('jjPlaceModal');await jjLoadPlaces();demoToast('Place saved');
+  jjHideDialog('jjPlaceModal');await jjLoadPlaces();showToast('Place saved');
  }catch(e){jjWorkspaceError(e);}finally{button.disabled=false;}
 }
 async function jjHandlePlaceClick(event){
  const edit=event.target.closest('[data-jj-edit-place]');if(edit){jjOpenPlace(edit.dataset.jjEditPlace);return;}
  const del=event.target.closest('[data-jj-delete-place]');if(del){const id=del.dataset.jjDeletePlace,p=jjPlaces.places.find(x=>x.id===id);if(!p||!confirm(`Delete "${p.name}" from this trip?`))return;
-  del.disabled=true;try{await apiRequest(`/api/trips/${encodeURIComponent(jjPlaces.tripId)}/places/${id}`,{method:'DELETE'});await jjLoadPlaces();demoToast('Place deleted');}catch(e){jjWorkspaceError(e);del.disabled=false;}return;}
+  del.disabled=true;try{await apiRequest(`/api/trips/${encodeURIComponent(jjPlaces.tripId)}/places/${id}`,{method:'DELETE'});await jjLoadPlaces();showToast('Place deleted');}catch(e){jjWorkspaceError(e);del.disabled=false;}return;}
 }
 async function initPlannerPlacesPage(){
  const qp=new URLSearchParams(location.search).get('trip');
  if(document.getElementById('jjPlannerPage')){
   jjInitModals();const selector=document.getElementById('jjPlannerTrip');jjPlan.tripId=jjChooseTrip(selector,qp);
   selector.addEventListener('change',async()=>{jjPlan.tripId=selector.value;jjPlan.day=1;history.replaceState(null,'',`planner.html?trip=${encodeURIComponent(jjPlan.tripId)}`);await jjLoadActivities();});
+  document.getElementById('jjTripStatusButton').addEventListener('click',jjSetPlannerTripStatus);
   document.getElementById('jjAddActivity').addEventListener('click',()=>jjOpenActivity());
   document.getElementById('jjActivityForm').addEventListener('submit',jjSaveActivity);
   document.getElementById('jjPlannerBody').addEventListener('click',jjHandlePlanClick);
@@ -133,7 +152,7 @@ async function initPlannerPlacesPage(){
   document.getElementById('jjAddPlace').addEventListener('click',()=>jjOpenPlace());
   document.getElementById('jjPlaceForm').addEventListener('submit',jjSavePlace);
   document.getElementById('jjPlacesBody').addEventListener('click',jjHandlePlaceClick);
-  document.querySelector('#jjPlaceForm [name=imageFile]').addEventListener('change',event=>{const file=event.target.files?.[0];if(file){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>1500000){demoToast('Image must be JPEG, PNG or WebP under 1.5 MB');event.target.value='';return;}const url=URL.createObjectURL(file);const img=document.getElementById('jjPlacePreview');img.src=url;img.hidden=false;img.onload=()=>URL.revokeObjectURL(url);}});
+  document.querySelector('#jjPlaceForm [name=imageFile]').addEventListener('change',event=>{const file=event.target.files?.[0];if(file){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>1500000){showToast('Image must be JPEG, PNG or WebP under 1.5 MB');event.target.value='';return;}const url=URL.createObjectURL(file);const img=document.getElementById('jjPlacePreview');img.src=url;img.hidden=false;img.onload=()=>URL.revokeObjectURL(url);}});
   await jjLoadPlaces();
  }
 }

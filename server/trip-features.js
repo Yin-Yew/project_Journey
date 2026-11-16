@@ -1,5 +1,6 @@
 /* Persistent trip expenses, payment confirmations, and protected memory photos. */
 const crypto = require('crypto');
+const {cents,ledgerFor}=require('./finance-ledger');
 const path = require('path');
 const fs = require('fs/promises');
 const PHOTO_DIR = path.resolve(__dirname, '../uploads/memories');
@@ -20,7 +21,7 @@ module.exports = function registerFeatures(app, deps) {
    const [splits]=await run('SELECT s.* FROM expense_splits s JOIN expenses e ON e.id=s.expense_id WHERE e.trip_id=?',[tripId]);
    return expenses.map(e=>{
      const relevant=splits.filter(s=>s.expense_id===e.id);
-     return {id:String(e.id),title:e.title,category:e.category,amount:Number(e.amount),paidBy:String(e.paid_by),splitType:e.split_type,date:dateText(e.expense_date),createdAt:e.created_at,participants:relevant.map(s=>String(s.user_id)),shares:Object.fromEntries(relevant.map(s=>[String(s.user_id),e.split_type==='percentage'?Number(s.share_percentage):Number(s.share_amount)]))};
+     return {id:String(e.id),title:e.title,category:e.category,amount:Number(e.amount),paidBy:String(e.paid_by),splitType:e.split_type,date:dateText(e.expense_date),createdAt:e.created_at,participants:relevant.map(s=>String(s.user_id)),shares:Object.fromEntries(relevant.map(s=>[String(s.user_id),e.split_type==='percentage'?Number(s.share_percentage):Number(s.share_amount)])),amountShares:Object.fromEntries(relevant.map(s=>[String(s.user_id),Number(s.share_amount)]))};
    });
  };
  const readPayments = async(tripId) => {
@@ -58,7 +59,10 @@ module.exports = function registerFeatures(app, deps) {
  async function writeExpense(trip,data,expenseId=null){
    const v=await normalizeExpense(trip.id,data),conn=await pool.getConnection();
    try{
-    await conn.beginTransaction();let id=expenseId;
+    await conn.beginTransaction();
+    // Serialize expense edits with new/confirmed payments on this trip.
+    await conn.execute('SELECT id FROM trips WHERE id=? FOR UPDATE',[trip.id]);
+    let id=expenseId;
     if(id){const [result]=await conn.execute('UPDATE expenses SET title=?,category=?,amount=?,paid_by=?,split_type=? WHERE id=? AND trip_id=?',[v.title,v.category,v.amount,v.paidBy,v.splitType,id,trip.id]);if(!result.affectedRows)throw Object.assign(new Error('Expense not found.'),{status:404});await conn.execute('DELETE FROM expense_splits WHERE expense_id=?',[id]);}
     else{const [result]=await conn.execute('INSERT INTO expenses (trip_id,title,category,amount,paid_by,split_type,expense_date) VALUES (?,?,?,?,?,?,CURDATE())',[trip.id,v.title,v.category,v.amount,v.paidBy,v.splitType]);id=result.insertId;}
     for(const userId of v.participants)await conn.execute('INSERT INTO expense_splits (expense_id,user_id,share_amount,share_percentage) VALUES (?,?,?,?)',[id,userId,v.shares[userId],v.splitType==='percentage'?Number(data.shares[userId]):null]);
@@ -67,20 +71,66 @@ module.exports = function registerFeatures(app, deps) {
  }
  app.post('/api/trips/:id/expenses',...protect(async(req,res)=>{const trip=await authorizeTrip(req,res,true);if(!trip)return;try{const id=await writeExpense(trip,req.body);res.status(201).json({id});}catch(e){if(e.status)return fail(res,e.status,e.message);throw e;}}));
  app.put('/api/trips/:id/expenses/:expenseId',...protect(async(req,res)=>{const trip=await authorizeTrip(req,res,true);if(!trip)return;if(!isId(req.params.expenseId))return fail(res,400,'Invalid expense id.');try{const id=await writeExpense(trip,req.body,req.params.expenseId);res.json({id});}catch(e){if(e.status)return fail(res,e.status,e.message);throw e;}}));
- app.delete('/api/trips/:id/expenses/:expenseId',...protect(async(req,res)=>{const trip=await authorizeTrip(req,res,true);if(!trip)return;if(!isId(req.params.expenseId))return fail(res,400,'Invalid expense id.');const [r]=await run('DELETE FROM expenses WHERE id=? AND trip_id=?',[req.params.expenseId,trip.id]);if(!r.affectedRows)return fail(res,404,'Expense not found.');res.json({ok:true});}));
+ app.delete('/api/trips/:id/expenses/:expenseId',...protect(async(req,res)=>{
+  const trip=await authorizeTrip(req,res,true);if(!trip)return;
+  if(!isId(req.params.expenseId))return fail(res,400,'Invalid expense id.');
+  const conn=await pool.getConnection();
+  try{await conn.beginTransaction();await conn.execute('SELECT id FROM trips WHERE id=? FOR UPDATE',[trip.id]);
+   const [r]=await conn.execute('DELETE FROM expenses WHERE id=? AND trip_id=?',[req.params.expenseId,trip.id]);
+   if(!r.affectedRows){await conn.rollback();return fail(res,404,'Expense not found.');}
+   await conn.commit();res.json({ok:true});
+  }catch(e){await conn.rollback();throw e;}finally{conn.release();}
+ }));
+ // A payment is a notice about an external transfer, not a transfer inside JoyJourney.
+ // Validate against the current ledger to stop arbitrary / excessive notices.
  app.post('/api/trips/:id/payments',...protect(async(req,res)=>{
    const trip=await authorizeTrip(req,res);if(!trip)return;
    const from=String(req.body.from||''),to=String(req.body.to||''),amount=round(req.body.amount);
    if(from!==String(req.user.id)||!isId(to)||to===from||!Number.isFinite(amount)||amount<=0||amount>1e9)return fail(res,400,'Invalid payment. Only the payer may submit.');
-   const [m]=await run('SELECT user_id FROM trip_members WHERE trip_id=? AND user_id=?',[trip.id,to]);if(!m.length)return fail(res,400,'Recipient is not a trip member.');
-   const slip=String(req.body.slip||'');if(slip.length>2000000||slip&&!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(slip))return fail(res,400,'Invalid slip image.');
-   const [existing]=await run("SELECT id FROM payments WHERE trip_id=? AND payer_id=? AND payee_id=? AND amount=? AND status IN ('paid','pending') ORDER BY id DESC LIMIT 1",[trip.id,from,to,amount]);
-   if(existing.length){await run("UPDATE payments SET slip_url=? WHERE id=? AND status='pending'",[slip||null,existing[0].id]);return res.json({id:String(existing[0].id)});}
-   const [r]=await run("INSERT INTO payments (trip_id,payer_id,payee_id,amount,status,slip_url) VALUES (?,?,?,?,'pending',?)",[trip.id,from,to,amount,slip||null]);res.status(201).json({id:String(r.insertId)});
+   const slip=String(req.body.slip||'');
+   if(slip.length>2000000||(slip&&!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(slip)))return fail(res,400,'Invalid slip image.');
+   const conn=await pool.getConnection();
+   try{
+     await conn.beginTransaction();
+     await conn.execute('SELECT id FROM trips WHERE id=? FOR UPDATE',[trip.id]);
+     const [member]=await conn.execute('SELECT user_id FROM trip_members WHERE trip_id=? AND user_id=?',[trip.id,to]);
+     if(!member.length){await conn.rollback();return fail(res,400,'Recipient is not a trip member.');}
+     const [existing]=await conn.execute("SELECT id FROM payments WHERE trip_id=? AND payer_id=? AND payee_id=? AND status='pending' LIMIT 1",[trip.id,from,to]);
+     if(existing.length){await conn.rollback();return fail(res,409,'You already have a pending notice to this friend. Wait for confirmation or cancel it.');}
+     const settlements=await ledgerFor(conn,trip.id);
+     const debt=settlements.find(p=>p.from===from&&p.to===to);
+     if(!debt||cents(amount)>cents(debt.amount)){
+       await conn.rollback();return fail(res,409,'Amount exceeds your current balance. Refresh the expense page.');
+     }
+     const [created]=await conn.execute("INSERT INTO payments (trip_id,payer_id,payee_id,amount,status,slip_url) VALUES (?,?,?,?,'pending',?)",[trip.id,from,to,amount,slip||null]);
+     await conn.commit();res.status(201).json({id:String(created.insertId)});
+   }catch(error){await conn.rollback();throw error;}finally{conn.release();}
  }));
  app.patch('/api/trips/:id/payments/:paymentId/verify',...protect(async(req,res)=>{
-   const trip=await authorizeTrip(req,res);if(!trip)return;if(!isId(req.params.paymentId))return fail(res,400,'Invalid payment id.');
-   const [r]=await run("UPDATE payments SET status='paid',verified_at=NOW() WHERE id=? AND trip_id=? AND payee_id=? AND status='pending'",[req.params.paymentId,trip.id,req.user.id]);if(!r.affectedRows)return fail(res,403,'Only the recipient can confirm a pending payment.');res.json({ok:true});
+   const trip=await authorizeTrip(req,res);if(!trip)return;
+   if(!isId(req.params.paymentId))return fail(res,400,'Invalid payment id.');
+   const conn=await pool.getConnection();
+   try{
+     await conn.beginTransaction();
+     await conn.execute('SELECT id FROM trips WHERE id=? FOR UPDATE',[trip.id]);
+     const [rows]=await conn.execute("SELECT * FROM payments WHERE id=? AND trip_id=? AND payee_id=? AND status='pending' FOR UPDATE",[req.params.paymentId,trip.id,req.user.id]);
+     if(!rows.length){await conn.rollback();return fail(res,403,'Only the recipient can confirm a pending payment.');}
+     const payment=rows[0];
+     const settlements=await ledgerFor(conn,trip.id);
+     const debt=settlements.find(p=>p.from===String(payment.payer_id)&&p.to===String(payment.payee_id));
+     if(!debt||cents(payment.amount)>cents(debt.amount)){
+       await conn.rollback();return fail(res,409,'Trip balances changed since this notice. Cancel it and ask the payer to submit the correct amount.');
+     }
+     await conn.execute("UPDATE payments SET status='paid',verified_at=NOW() WHERE id=?",[payment.id]);
+     await conn.commit();res.json({ok:true});
+   }catch(error){await conn.rollback();throw error;}finally{conn.release();}
+ }));
+ app.patch('/api/trips/:id/payments/:paymentId/cancel',...protect(async(req,res)=>{
+   const trip=await authorizeTrip(req,res);if(!trip)return;
+   if(!isId(req.params.paymentId))return fail(res,400,'Invalid payment id.');
+   const [result]=await run("UPDATE payments SET status='cancelled' WHERE id=? AND trip_id=? AND status='pending' AND (payer_id=? OR payee_id=?)",[req.params.paymentId,trip.id,req.user.id,req.user.id]);
+   if(!result.affectedRows)return fail(res,403,'Only the payer or recipient can cancel a pending notice.');
+   res.json({ok:true});
  }));
  // All metrics are computed from database rows, not template/sample values.
  app.get('/api/dashboard',...protect(async(req,res)=>{
@@ -102,9 +152,9 @@ module.exports = function registerFeatures(app, deps) {
    if(!signatures[m[1]])return null;
    return {data,extension:m[1]==='jpeg'?'jpg':m[1],mime:`image/${m[1]}`};
  };
- const memoryDTO = r => ({id:String(r.id),tripId:String(r.trip_id),tripName:r.trip_name,caption:r.caption,uploadedBy:String(r.uploaded_by),createdAt:r.created_at});
+ const memoryDTO = r => ({id:String(r.id),tripId:String(r.trip_id),tripName:r.trip_name,caption:r.caption,uploadedBy:String(r.uploaded_by),createdAt:r.created_at,imageUrl:r.image_url||null});
  app.get('/api/memories',...protect(async(req,res)=>{
-   const [rows]=await run('SELECT DISTINCT p.id,p.trip_id,p.caption,p.uploaded_by,p.created_at,t.name AS trip_name FROM memories p JOIN trips t ON t.id=p.trip_id JOIN trip_members m ON m.trip_id=t.id WHERE m.user_id=? ORDER BY p.created_at DESC,p.id DESC',[req.user.id]);
+   const [rows]=await run('SELECT DISTINCT p.id,p.trip_id,p.caption,p.uploaded_by,p.created_at,p.image_url,t.name AS trip_name FROM memories p JOIN trips t ON t.id=p.trip_id JOIN trip_members m ON m.trip_id=t.id WHERE m.user_id=? ORDER BY p.created_at DESC,p.id DESC',[req.user.id]);
    res.json({memories:rows.map(memoryDTO)});
  }));
  app.post('/api/trips/:id/memories',...protect(async(req,res)=>{
@@ -120,6 +170,13 @@ module.exports = function registerFeatures(app, deps) {
    const pic=await findPhoto(req,res);if(!pic)return;
    try{const bytes=await fs.readFile(path.join(PHOTO_DIR,path.basename(pic.filename)));res.set({'Content-Type':pic.mime_type,'Cache-Control':'private, max-age=300','X-Content-Type-Options':'nosniff'}).send(bytes);}
    catch(e){if(e.code==='ENOENT')return fail(res,404,'Photo file missing.');throw e;}
+ }));
+ app.patch('/api/memories/:memoryId',...protect(async(req,res)=>{
+   const pic=await findPhoto(req,res);if(!pic)return;
+   if(String(pic.uploaded_by)!==String(req.user.id)&&pic.role!=='owner')return fail(res,403,'Only the uploader or trip owner can edit the caption.');
+   const caption=typeof req.body.caption==='string'?req.body.caption.trim():'';
+   if(!caption||caption.length>300)return fail(res,400,'Please enter a caption up to 300 characters.');
+   await run('UPDATE memories SET caption=? WHERE id=?',[caption,pic.id]);res.json({ok:true,caption});
  }));
  app.delete('/api/memories/:memoryId',...protect(async(req,res)=>{
    const pic=await findPhoto(req,res);if(!pic)return;

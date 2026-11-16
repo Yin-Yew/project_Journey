@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS memories (
  caption VARCHAR(300) NOT NULL,
  filename VARCHAR(80) NOT NULL UNIQUE,
  mime_type VARCHAR(30) NOT NULL,
+ image_url VARCHAR(1500) NULL,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
  FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
@@ -200,4 +201,25 @@ CREATE TABLE IF NOT EXISTS destination_votes (
   INDEX idx_poll_candidate (poll_id,candidate_id),
   CONSTRAINT fk_destination_votes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (poll_id,candidate_id) REFERENCES destination_candidates(poll_id,id) ON DELETE CASCADE
+);
+
+-- One shared voting board for the simplified Next Trip page (v7).
+-- Reuses destination_polls/candidates/votes, preserving existing choices.
+CREATE TABLE IF NOT EXISTS next_trip_board (
+  slot TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+  poll_id INT NOT NULL UNIQUE,
+  start_at DATETIME NULL DEFAULT NULL,
+  end_at DATETIME NULL DEFAULT NULL,
+  CONSTRAINT fk_next_trip_shared_poll FOREIGN KEY (poll_id) REFERENCES destination_polls(id) ON DELETE RESTRICT
+);
+
+
+-- v9: archive each Next Trip round without deleting destinations or anonymized totals.
+CREATE TABLE IF NOT EXISTS next_trip_rounds (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ poll_id INT NOT NULL UNIQUE,
+ start_at DATETIME NOT NULL,
+ end_at DATETIME NOT NULL,
+ closed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (poll_id) REFERENCES destination_polls(id) ON DELETE RESTRICT
 );

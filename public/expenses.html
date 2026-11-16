@@ -108,13 +108,13 @@
     <div class="top-actions">
      <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
      <a class="user-chip" href="profile.html">
-      <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+      <img alt="Profile avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Traveler&amp;backgroundColor=ffd5dc"/>
       <span>
        <strong>
-        Yin
+        Traveler
        </strong>
        <small>
-        Beach Explorer
+        Traveler
        </small>
       </span>
       <i class="ph ph-caret-down">
@@ -132,7 +132,7 @@
        Expenses &amp; Payments
       </h1>
       <p>
-       Every trip has its own expense list, balances and payment activity.
+       Add an expense, split it with friends and track who has paid.
       </p>
      </div>
      <button class="btn primary" onclick="openExpenseModal()">
@@ -141,6 +141,7 @@
       Add Expense
      </button>
     </section>
+    <div class="finance-quick-guide" aria-label="How expenses work"><span><b>1</b> Add expenses</span><i class="ph ph-arrow-right"></i><span><b>2</b> See who owes whom</span><i class="ph ph-arrow-right"></i><span><b>3</b> Confirm payment</span></div>
     <div class="trip-switcher finance-trip-switcher" id="financeTripSwitcher">
     </div>
     <div id="financePanels">
@@ -204,27 +205,18 @@
       </div>
       <div class="expense-form-block">
        <span class="form-label">
-        Split with
+        Share this cost with
        </span>
        <div class="participant-grid" id="expenseParticipants">
        </div>
+       <p class="form-hint">Everyone is selected by default. Untick anyone who is not sharing this expense.</p>
       </div>
-      <label>
-       Split method
-       <select id="expenseSplitType">
-        <option value="equal">
-         Equal
-        </option>
-        <option value="percentage">
-         Percentage
-        </option>
-        <option value="custom">
-         Custom amount
-        </option>
-       </select>
-      </label>
-      <div class="split-detail-fields" id="splitDetailFields">
-      </div>
+      <details class="expense-advanced" id="expenseAdvancedSplit"><summary>Advanced split options</summary>
+       <label>Split method
+        <select id="expenseSplitType"><option value="equal">Equal (recommended)</option><option value="percentage">Percentage</option><option value="custom">Custom amount</option></select>
+       </label>
+      </details>
+      <div class="split-detail-fields" id="splitDetailFields"></div>
       <button class="btn primary full" type="submit">
        <i class="ph ph-floppy-disk">
        </i>
@@ -254,43 +246,13 @@
       <div class="payment-big-amount" id="payAmount">
        ฿0
       </div>
-      <div class="payment-code-wrap">
-       <div class="payment-code" id="paymentCode">
-       </div>
-       <span>
-        Demo payment code
-       </span>
-      </div>
-      <div class="payment-detail-row">
-       <div>
-        <small>
-         PromptPay
-        </small>
-        <strong id="payPromptPay">
-         Not added
-        </strong>
-       </div>
-       <button onclick="copyPaymentInfo('promptpay')">
-        <i class="ph ph-copy">
-        </i>
-       </button>
-      </div>
-      <div class="payment-detail-row">
-       <div>
-        <small>
-         Bank
-        </small>
-        <strong id="payBank">
-         Not added
-        </strong>
-       </div>
-       <button onclick="copyPaymentInfo('bank')">
-        <i class="ph ph-copy">
-        </i>
-       </button>
-      </div>
+      <label class="jj-partial-amount">จำนวนที่โอนจริง (จ่ายบางส่วนได้)
+        <input id="payPartialAmount" type="number" min="0.01" step="0.01" required aria-label="Payment amount" />
+      </label>
+      <p class="finance-payment-help">Transfer money to your friend outside JoyJourney, then submit a payment notice here. The recipient will confirm it.</p>
+      <div class="payment-detail-row" id="payPromptPayRow"><div><small>Recipient's PromptPay</small><strong id="payPromptPay">Not added</strong></div><button type="button" id="payCopyPromptPay" onclick="copyPaymentInfo('promptpay')" aria-label="Copy PromptPay"><i class="ph ph-copy"></i></button></div>
       <label class="slip-upload">
-       Upload payment slip
+       Payment slip (optional)
        <input accept="image/*" id="paymentSlip" onchange="previewPaymentSlip(event)" type="file"/>
       </label>
       <div class="slip-preview" id="slipPreview">
@@ -303,12 +265,12 @@
       <button class="btn primary full" onclick="submitPayment()">
        <i class="ph-duotone ph-paper-plane-tilt">
        </i>
-       Submit Payment
+       I Have Paid — Notify Friend
       </button>
       <p class="payment-note">
        <i class="ph-duotone ph-info">
        </i>
-       Payment confirmation is manual in this project. The QR shown here is a demo visual, not a bank-generated QR.
+       This does not transfer money. The recipient must confirm your payment before it is marked Paid.
       </p>
      </div>
     </div>

@@ -81,7 +81,7 @@ function initTripChecklist(){
   const itemId=input.dataset.itemId,checked=input.checked;
   input.disabled=true;
   try{await checklistUpdate(tripId,itemId,{checked});}
-  catch(e){demoToast(e.message);try{await refreshChecklistState(tripId);}catch{input.checked=!checked;input.disabled=false;}}
+  catch(e){showToast(e.message);try{await refreshChecklistState(tripId);}catch{input.checked=!checked;input.disabled=false;}}
  });
  document.addEventListener('click',async event=>{
   const button=event.target.closest('button[data-check-edit],button[data-check-delete]');if(!button)return;
@@ -94,11 +94,11 @@ function initTripChecklist(){
   try{
    if(button.hasAttribute('data-check-delete')){
     if(!confirm(`Delete "${item.label}"?`))return;
-    await checklistDelete(tripId,id);demoToast('Item deleted');return;
+    await checklistDelete(tripId,id);showToast('Item deleted');return;
    }
    const label=prompt('Edit packing item',item.label)?.trim();if(!label)return;
-   await checklistUpdate(tripId,id,{label:label.slice(0,150)});demoToast('Item updated');
-  }catch(e){demoToast(e.message);await refreshChecklistState(tripId).catch(()=>{});}
+   await checklistUpdate(tripId,id,{label:label.slice(0,150)});showToast('Item updated');
+  }catch(e){showToast(e.message);await refreshChecklistState(tripId).catch(()=>{});}
   finally{button.disabled=false;}
  });
  // Synchronize changes made by other members while the tab is visible.
@@ -113,11 +113,14 @@ async function jjFetchMemoryPhoto(id){
  if(!response.ok)throw new Error('Could not load photo');
  return URL.createObjectURL(await response.blob());
 }
-function jjRevokeMemoryUrls(){jjMemoryUrls.forEach(url=>URL.revokeObjectURL(url));jjMemoryUrls.clear();}
+function jjRevokeMemoryUrls(){jjMemoryUrls.forEach(url=>{if(url.startsWith('blob:'))URL.revokeObjectURL(url);});jjMemoryUrls.clear();}
 async function loadTripMemories(){
  if(!document.querySelector('.memory-gallery'))return;
  jjRevokeMemoryUrls();jjMemoryRecords=(await apiRequest('/api/memories')).memories||[];
- await Promise.all(jjMemoryRecords.map(async m=>{try{jjMemoryUrls.set(m.id,await jjFetchMemoryPhoto(m.id));}catch(e){console.warn(e);}}));
+ await Promise.all(jjMemoryRecords.map(async m=>{
+  if(m.imageUrl && /^https:\/\/(?:thumb\.|upload\.)wikimedia\.org\//.test(m.imageUrl)){jjMemoryUrls.set(m.id,m.imageUrl);return;}
+  try{jjMemoryUrls.set(m.id,await jjFetchMemoryPhoto(m.id));}catch(e){console.warn(e);}
+ }));
  renderTripMemories();
 }
 function renderTripMemories(){
@@ -127,27 +130,37 @@ function renderTripMemories(){
  groups.map(t=>`<button type="button" class="${jjMemoryFilter===t.id?'active':''}" data-memory-filter="${escapeHTML(t.id)}">${escapeHTML(t.name)} <span>${jjMemoryRecords.filter(m=>m.tripId===t.id).length}</span></button>`).join('');
  const selected=jjMemoryRecords.filter(m=>jjMemoryFilter==='all'||m.tripId===jjMemoryFilter);
  gallery.innerHTML=selected.length?selected.map((m,index)=>`<article class="polaroid memory-item ${index%2?'rotate-right':'rotate-left'}" data-memory-id="${m.id}" tabindex="0" role="button" aria-label="Open ${escapeHTML(m.caption)}"><div class="memory-frame"><img alt="${escapeHTML(m.caption)}" loading="lazy" class="memory-photo" src="${jjMemoryImgUrl(m.id)}"><span class="memory-trip pink"><i class="ph-duotone ph-map-pin"></i> ${escapeHTML(m.tripName)}</span></div><p>${escapeHTML(m.caption)}</p></article>`).join(''):'<div class="card jj-gallery-empty"><i class="ph-duotone ph-images"></i><h3>No photos in this album</h3><p>Choose Add Memory to upload a photo from any trip, including finished trips.</p></div>';
+ // For externally hosted images, use the authenticated local photo if the host fails.
+ gallery.querySelectorAll('.memory-item').forEach(item=>{
+  const id=item.dataset.memoryId,photo=item.querySelector('img.memory-photo'),url=jjMemoryImgUrl(id);
+  if(!photo||!url.startsWith('https://'))return;
+  photo.addEventListener('error',async()=>{
+   try{const fallback=await jjFetchMemoryPhoto(id);jjMemoryUrls.set(id,fallback);photo.src=fallback;}
+   catch(error){console.warn('Memory fallback unavailable:',error);}
+  },{once:true});
+ });
 }
 function initTripMemories(){
  if(!document.querySelector('.memory-gallery'))return;
  const content=document.querySelector('.content');
  content.insertAdjacentHTML('beforeend',`<div class="modal" id="jjUploadModal"><div class="modal-box"><button class="close" type="button" onclick="closeModal('jjUploadModal')"><i class="ph ph-x"></i></button><h2>Add Memory</h2><form id="jjMemoryUploadForm" class="jj-upload-form"><label>Album / Trip<select id="jjMemoryTrip" required></select></label><label>Photo (JPEG, PNG or WebP, up to 5MB)<input type="file" id="jjMemoryFile" accept="image/jpeg,image/png,image/webp" required></label><label>Caption<input id="jjMemoryCaption" maxlength="300" required placeholder="Best sunset together"></label><button type="submit" class="btn primary full" id="jjMemorySubmit">Upload Photo</button></form></div></div>`);
- const add=document.querySelector('.page-head button[onclick^="demoToast"]');if(add){add.onclick=()=>openMemoryUploader();add.disabled=!tripCache.length;}
+ const add=document.querySelector('.page-head button[onclick^="showToast"]');if(add){add.onclick=()=>openMemoryUploader();add.disabled=!tripCache.length;}
  const upload=document.getElementById('jjMemoryUploadForm');upload?.addEventListener('submit',async event=>{
   event.preventDefault();const file=document.getElementById('jjMemoryFile').files[0],tripId=document.getElementById('jjMemoryTrip').value,caption=document.getElementById('jjMemoryCaption').value.trim();
-  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){demoToast('Select JPEG, PNG or WebP under 5MB');return;}
+  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){showToast('Select JPEG, PNG or WebP under 5MB');return;}
   const submit=document.getElementById('jjMemorySubmit');submit.disabled=true;
-  try{const data=await jjReadFile(file);await apiJson(`/api/trips/${encodeURIComponent(tripId)}/memories`,'POST',{caption,image:data});closeModal('jjUploadModal');upload.reset();jjMemoryFilter=tripId;await loadTripMemories();demoToast('Memory uploaded');}
-  catch(e){demoToast(e.message);}finally{submit.disabled=false;}
+  try{const data=await jjReadFile(file);await apiJson(`/api/trips/${encodeURIComponent(tripId)}/memories`,'POST',{caption,image:data});closeModal('jjUploadModal');upload.reset();jjMemoryFilter=tripId;await loadTripMemories();showToast('Memory uploaded');}
+  catch(e){showToast(e.message);}finally{submit.disabled=false;}
  });
  document.querySelector('.memory-filter')?.addEventListener('click',event=>{
   const button=event.target.closest('[data-memory-filter]');if(!button)return;jjMemoryFilter=button.dataset.memoryFilter;renderTripMemories();
  });
  document.querySelector('.memory-gallery')?.addEventListener('click',event=>{const card=event.target.closest('[data-memory-id]');if(card)jjShowMemory(card.dataset.memoryId);});
  document.querySelector('.memory-gallery')?.addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;const card=event.target.closest('[data-memory-id]');if(card){event.preventDefault();jjShowMemory(card.dataset.memoryId);}});
- const box=document.querySelector('.lightbox-card');box?.insertAdjacentHTML('beforeend','<button type="button" id="jjDeleteMemory" class="btn danger jj-memory-delete">Delete Photo</button>');
+ const box=document.querySelector('.lightbox-card');box?.insertAdjacentHTML('beforeend','<button type="button" id="jjEditMemoryCaption" class="btn soft">Edit caption</button> <button type="button" id="jjDeleteMemory" class="btn danger jj-memory-delete">Delete Photo</button>');
  document.getElementById('jjDeleteMemory')?.addEventListener('click',jjDeleteSelectedMemory);
- loadTripMemories().catch(e=>demoToast(e.message));
+ document.getElementById('jjEditMemoryCaption')?.addEventListener('click',jjEditSelectedMemoryCaption);
+ loadTripMemories().catch(e=>showToast(e.message));
 }
 function jjReadFile(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('File cannot be opened'));reader.readAsDataURL(file);});}
 function openMemoryUploader(){
@@ -162,12 +175,24 @@ function jjShowMemory(id){
  const image=document.getElementById('lightboxImage');if(image){image.src=jjMemoryImgUrl(id);image.alt=memory.caption;}
  const caption=document.getElementById('lightboxCaption');if(caption)caption.textContent=memory.caption;
  const trip=document.getElementById('lightboxTrip');if(trip)trip.textContent=memory.tripName;
- const del=document.getElementById('jjDeleteMemory');if(del)del.hidden=memory.uploadedBy!==currentId()&&getTripById(memory.tripId)?.role!=='owner';
+ const mayEdit=memory.uploadedBy===currentId()||getTripById(memory.tripId)?.role==='owner';
+ const del=document.getElementById('jjDeleteMemory');if(del)del.hidden=!mayEdit;
+ const edit=document.getElementById('jjEditMemoryCaption');if(edit)edit.hidden=!mayEdit;
  document.getElementById('memoryLightbox')?.classList.add('open');
+}
+async function jjEditSelectedMemoryCaption(){
+ const memory=jjMemoryRecords.find(m=>m.id===jjMemorySelected);if(!memory)return;
+ const caption=prompt('Edit this photo caption',memory.caption)?.trim();
+ if(!caption||caption===memory.caption)return;
+ if(caption.length>300){showToast('Caption is too long (max 300 characters)');return;}
+ try{await apiJson(`/api/memories/${encodeURIComponent(memory.id)}`,'PATCH',{caption});
+   memory.caption=caption;document.getElementById('lightboxCaption').textContent=caption;
+   renderTripMemories();showToast('Caption updated');
+ }catch(e){showToast(e.message);}
 }
 async function jjDeleteSelectedMemory(){
  if(!jjMemorySelected||!confirm('Delete this memory photo?'))return;
- try{await apiRequest(`/api/memories/${encodeURIComponent(jjMemorySelected)}`,{method:'DELETE'});document.getElementById('memoryLightbox')?.classList.remove('open');jjMemorySelected='';await loadTripMemories();demoToast('Memory deleted');}
- catch(e){demoToast(e.message);}
+ try{await apiRequest(`/api/memories/${encodeURIComponent(jjMemorySelected)}`,{method:'DELETE'});document.getElementById('memoryLightbox')?.classList.remove('open');jjMemorySelected='';await loadTripMemories();showToast('Memory deleted');}
+ catch(e){showToast(e.message);}
 }
 window.addEventListener('beforeunload',jjRevokeMemoryUrls);

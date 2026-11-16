@@ -2915,3 +2915,109 @@ html[data-theme] .day-tabs .active {
 .jj-candidate-tools button{border:0;background:transparent;cursor:pointer;color:var(--muted);padding:4px}
 @media(max-width:850px){.jj-voting-layout{grid-template-columns:minmax(0,1fr)}.jj-poll-list{position:static}}
 @media(max-width:480px){.jj-poll-header{padding:16px}.jj-poll-invite{flex-wrap:wrap}.jj-join-vote>div{flex-wrap:wrap}}
+
+/* JoyJourney streamlined Expenses, Planner and Profile */
+.finance-summary{grid-template-columns:repeat(3,minmax(0,1fr));}
+.finance-quick-guide{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px;background:#fff;border:1px solid var(--line);border-radius:17px;color:var(--muted);font-size:13px;font-weight:800;}
+.finance-quick-guide span{display:inline-flex;align-items:center;gap:7px;}
+.finance-quick-guide b{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#ffe8f0;color:#bc537a;}
+.finance-quick-guide>i{color:#c8bfc8;}
+.finance-empty-trips{width:100%;padding:18px 6px;color:var(--muted);}
+.finance-empty-trips a{color:#c7517d;text-decoration:underline;}
+.expense-advanced{margin:12px 0 0;background:#faf8fb;border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+.expense-advanced summary{cursor:pointer;font-size:13px;font-weight:800;color:#7b6887;}
+.expense-advanced[open] label{display:block;margin-top:12px;}
+.expense-advanced select{width:100%;margin-top:5px;}
+.finance-payment-help{margin:10px 0 14px;font-size:14px;line-height:1.6;color:var(--muted);}
+.finance-pay-box .payment-detail-row button:disabled{opacity:.4;cursor:not-allowed;}
+.jj-planner-trip-control{display:flex;align-items:center;flex-wrap:wrap;gap:12px;}
+.jj-planner-trip-status{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.jj-planner-trip-status button[hidden]{display:none;}
+@media(max-width:760px){.finance-summary{grid-template-columns:1fr;}.finance-quick-guide{gap:8px;}.finance-quick-guide>i{display:none;}.jj-planner-trip-status{margin-left:0;width:100%;justify-content:space-between;}}
+
+#expenseSplitTotal{margin:10px 0 2px;font-weight:700;}
+
+
+/* Simple shared Next Trip Vote board (v7): add a place, then vote. */
+.jj-next-entry{padding:26px 29px;margin-bottom:27px}
+.jj-next-intro{display:flex;gap:17px;align-items:center;margin-bottom:20px}
+.jj-next-intro-icon{display:grid;place-items:center;width:56px;height:56px;flex:0 0 56px;border-radius:18px;background:var(--accent-soft,#ffe8f1);color:var(--pink-deep,#d95b86);font-size:30px}
+.jj-next-intro h2{margin:0 0 5px;font-size:1.35rem}
+.jj-next-intro p,.jj-next-guide{color:var(--muted);font-size:.92rem;margin:0}
+.jj-next-input-label{display:block;font-weight:800;font-size:.91rem;margin-bottom:7px}
+.jj-next-input-row{display:flex;gap:12px}
+.jj-next-input-row input{flex:1;min-width:0;border:1px solid #e4d8e3;border-radius:15px;padding:13px 16px;font:inherit;background:var(--surface,#fff);color:var(--text,#493e4b)}
+.jj-next-input-row input:focus{outline:2px solid #ed9aba;outline-offset:1px}
+.jj-next-input-row .btn{white-space:nowrap}
+.jj-next-guide{display:flex;align-items:center;gap:8px;margin-top:14px;line-height:1.5}
+.jj-next-guide i{font-size:20px;color:var(--pink-deep,#d95b86)}
+.jj-next-message{margin:9px 0 0;color:#27805d;font-weight:750;font-size:.87rem}
+.jj-next-message:empty{display:none}
+.jj-next-message.error{color:#b13b51}
+.jj-next-section-header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:17px}
+.jj-next-section-header h2{font-size:1.38rem;margin:0 0 4px}
+.jj-next-section-header p{margin:0;color:var(--muted);font-size:.92rem}
+.jj-next-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:17px}
+.jj-next-place{padding:22px;display:flex;flex-direction:column;gap:16px;border:1px solid var(--line)}
+.jj-next-place.is-mine{border-color:#eba2bd}
+.jj-next-place-main{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.jj-next-place-heading{display:flex;align-items:center;gap:12px;min-width:0}
+.jj-next-place-heading h3{font-size:1.17rem;overflow-wrap:anywhere;margin:0 0 3px}
+.jj-next-place-heading small{color:var(--muted);font-size:.79rem}
+.jj-next-pin{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:13px;background:var(--accent-soft,#ffe8f1);color:var(--pink-deep,#d95b86);font-size:24px}
+.jj-next-place-votes{display:flex;justify-content:space-between;align-items:baseline;color:var(--muted)}
+.jj-next-place-votes strong{font-size:1.75rem;line-height:1;color:var(--text,#493e4b)}
+.jj-next-place-votes small{font-size:.87rem}
+.jj-next-progress{height:9px;overflow:hidden;border-radius:20px;background:var(--line);margin-top:-7px}
+.jj-next-progress>div{height:100%;background:var(--pink-deep,#d95b86);border-radius:20px;transition:width .2s ease}
+.jj-next-card-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:auto}
+.jj-next-friends{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.jj-next-friends small{color:var(--muted);font-size:.79rem}
+.jj-next-friend{font-size:.77rem;font-weight:750;border:1px solid #f1dfe7;background:#fff5f8;border-radius:30px;padding:5px 9px;color:#9f486b}
+.jj-next-vote-button{min-width:129px}
+.jj-next-vote-button:disabled{opacity:.6;cursor:wait}
+.jj-next-empty{text-align:center;padding:45px 20px;grid-column:1/-1}
+.jj-next-empty>i{font-size:42px;color:var(--pink-deep,#d95b86)}
+.jj-next-empty h3{margin:9px 0 4px}
+.jj-next-empty p{margin:0;color:var(--muted)}
+@media(max-width:640px){.jj-next-entry{padding:18px}.jj-next-intro{align-items:flex-start}.jj-next-input-row{flex-direction:column}.jj-next-input-row .btn{justify-content:center}.jj-next-card-bottom{align-items:stretch}.jj-next-vote-button{width:100%}}
+
+/* The simplified, anonymous Next Trip Vote and its owner-set time window. */
+.jj-next-schedule{padding:24px 29px;margin-bottom:18px}
+.jj-next-schedule .jj-next-section-header{margin-bottom:14px}
+.jj-next-dates{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.jj-next-dates>div{border:1px solid var(--line);background:var(--surface,#fff);border-radius:15px;padding:15px 18px;display:flex;flex-direction:column;gap:6px}
+.jj-next-dates span{color:var(--muted);font-size:.86rem;font-weight:700}
+.jj-next-dates span i{margin-right:4px;color:var(--pink-deep,#d95b86)}
+.jj-next-dates strong{font-size:1rem;overflow-wrap:anywhere}
+.jj-next-time-form{margin-top:16px;border-top:1px solid var(--line);padding-top:17px}
+.jj-next-time-form[hidden]{display:none!important}
+.jj-next-time-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.jj-next-time-fields label{display:flex;flex-direction:column;gap:7px;font-weight:750;font-size:.88rem}
+.jj-next-time-fields input{padding:11px 13px;border-radius:12px;border:1px solid #e4d8e3;font:inherit;min-width:0;color:var(--text,#493e4b);background:var(--surface,#fff)}
+.jj-next-anonymous{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.8rem}
+.jj-next-entry input:disabled,.jj-next-entry button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:640px){.jj-next-schedule{padding:18px}.jj-next-dates,.jj-next-time-fields{grid-template-columns:1fr}}
+
+/* Next Trip v9: simple round archive */
+.jj-next-round-panel{margin-top:20px;border-top:1px solid #eadfeb;padding-top:16px}
+.jj-next-round-panel summary{cursor:pointer;font-weight:800;color:#8f4380}
+.jj-next-history{display:grid;gap:10px;margin-top:12px}
+.jj-history-card{padding:14px 18px}
+.jj-history-card summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;flex-wrap:wrap}
+.jj-history-card summary span{font-size:13px;color:#776a7b}
+.jj-history-options{display:grid;gap:6px;padding-top:12px}
+.jj-history-options p{display:flex;gap:8px;justify-content:space-between;margin:0;padding:7px 0;border-top:1px solid #f0e7ee}
+.jj-partial-amount{display:grid;gap:7px;font-weight:700;margin:14px 0}
+.jj-partial-amount input{width:100%;min-height:42px;border:1px solid #d8cddd;border-radius:12px;padding:9px 12px}
+
+/* Trip status switcher and invitation UX */
+.jj-trip-filter{display:flex;align-items:center;gap:12px;margin:8px 0 18px;flex-wrap:wrap}
+.jj-trip-filter label{font-weight:800}
+.jj-trip-filter select{padding:10px 14px;background:#fff;border:1px solid #e7d6e4;border-radius:12px;min-width:200px}
+.jj-management{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.jj-next-round-panel[hidden]{display:none!important}
+
+.jj-delete-confirm-label{display:grid;gap:7px;margin:15px 0;text-align:left;font-weight:700}
+.jj-delete-confirm-label input{width:100%;padding:10px;border:1px solid #dfd0da;border-radius:10px}
+.jj-history-card[open]{border-color:#e4bfd8}

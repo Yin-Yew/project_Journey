@@ -10,6 +10,7 @@ const app=Object.fromEntries(['get','post','patch','put','delete'].map(method=>[
 const fail=(res,code,message)=>res.status(code).json({error:message});
 async function run(sql,args=[]){
  if(sql==='SELECT * FROM destination_polls WHERE id=?')return [polls.filter(p=>p.id===Number(args[0]))];
+ if(sql==='SELECT slot FROM next_trip_board WHERE poll_id=?')return [Number(args[0])===999?[{slot:1}]:[]];
  if(sql.includes('FROM destination_polls p ORDER BY'))return [polls.map(p=>({...p,option_count:options.filter(o=>o.poll_id===p.id).length,vote_count:ballots.size}))];
  if(sql.startsWith('INSERT INTO destination_polls')){const id=nextPollId++;polls.push({id,owner_id:args[0],title:args[1],status:'open'});return [{insertId:id}];}
  if(sql.startsWith('SELECT id FROM destination_candidates WHERE id='))return [options.filter(x=>Number(args[0])===x.id&&Number(args[1])===x.poll_id)];
@@ -87,4 +88,18 @@ test('v6 migration preserves data, converts vote FK and removes code requirement
  assert.match(sql,/DROP FOREIGN KEY/);
  assert.match(sql,/fk_destination_votes_user/);
  assert.doesNotMatch(sql,/DELETE FROM destination_votes/i);
+});
+test('legacy poll routes cannot bypass the shared board time window',async()=>{
+ // Poll 999 is deliberately flagged as the shared board by the fixture SQL.
+ polls.push({id:999,owner_id:1,status:'open',title:'Shared next trip'});
+ try{
+   let res=await call('PUT','/api/destination-polls/:id/vote',1,{optionId:5},{id:'999'});
+   assert.equal(res.code,409);
+   res=await call('POST','/api/destination-polls/:id/options',1,{name:'Bali'},{id:'999'});
+   assert.equal(res.code,409);
+   res=await call('PATCH','/api/destination-polls/:id',1,{status:'closed'},{id:'999'});
+   assert.equal(res.code,409);
+   res=await call('DELETE','/api/destination-polls/:id',1,{}, {id:'999'});
+   assert.equal(res.code,409);
+ }finally{polls.splice(polls.findIndex(p=>p.id===999),1);}
 });

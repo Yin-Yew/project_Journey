@@ -12,13 +12,17 @@ const pollDTO = (row,userId) => ({
   options:Number(row.option_count||0),votes:Number(row.vote_count||0)
 });
 module.exports=function registerDestinationVotes(app,{run,protect,fail}){
-  async function findPoll(req,res,ownerOnly=false){
+  async function findPoll(req,res,ownerOnly=false,forWrite=false){
     if(!validId(req.params.id)){fail(res,400,'Invalid poll ID.');return null;}
     const [rows]=await run('SELECT * FROM destination_polls WHERE id=?',[req.params.id]);
     if(!rows.length){fail(res,404,'Voting poll not found.');return null;}
     const poll=rows[0];
     poll.role=String(poll.owner_id)===String(req.user.id)?'owner':'voter';
     if(ownerOnly&&poll.role!=='owner'){fail(res,403,'Only the poll owner may do this.');return null;}
+    if(forWrite){
+      const [board]=await run('SELECT slot FROM next_trip_board WHERE poll_id=?',[poll.id]);
+      if(board.length){fail(res,409,'This poll is now managed by the simplified Next Trip Vote page.');return null;}
+    }
     return poll;
   }
   function ensureOpen(res,poll){if(poll.status!=='open'){fail(res,409,'Voting is closed. Ask the owner to reopen it.');return false;}return true;}
@@ -50,7 +54,7 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     res.json(await details(poll,req.user.id));
   }));
   app.patch('/api/destination-polls/:id',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res,true);if(!poll)return;
+    const poll=await findPoll(req,res,true,true);if(!poll)return;
     const body=req.body||{};
     const title=body.title===undefined?poll.title:clean(body.title,150);
     const status=body.status===undefined?poll.status:body.status;
@@ -59,11 +63,11 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     res.json({ok:true});
   }));
   app.delete('/api/destination-polls/:id',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res,true);if(!poll)return;
+    const poll=await findPoll(req,res,true,true);if(!poll)return;
     await run('DELETE FROM destination_polls WHERE id=?',[poll.id]);res.json({ok:true});
   }));
   app.post('/api/destination-polls/:id/options',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res);if(!poll)return;if(!ensureOpen(res,poll))return;
+    const poll=await findPoll(req,res,false,true);if(!poll)return;if(!ensureOpen(res,poll))return;
     const candidate=validateCandidate(req.body);if(!candidate)return fail(res,400,'Enter a destination and optionally a description or HTTPS photo URL.');
     const [count]=await run('SELECT COUNT(*) AS total FROM destination_candidates WHERE poll_id=?',[poll.id]);
     if(Number(count[0].total)>=100)return fail(res,409,'A poll supports at most 100 destinations.');
@@ -71,7 +75,7 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     res.status(201).json({option:{id:String(result.insertId),...candidate,votes:0}});
   }));
   app.patch('/api/destination-polls/:id/options/:optionId',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res);if(!poll)return;if(!ensureOpen(res,poll))return;
+    const poll=await findPoll(req,res,false,true);if(!poll)return;if(!ensureOpen(res,poll))return;
     if(!validId(req.params.optionId))return fail(res,400,'Invalid destination ID.');
     const [rows]=await run('SELECT id,created_by FROM destination_candidates WHERE id=? AND poll_id=?',[req.params.optionId,poll.id]);
     if(!rows.length)return fail(res,404,'Destination not found.');
@@ -80,7 +84,7 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     await run('UPDATE destination_candidates SET name=?,details=?,image_url=? WHERE id=? AND poll_id=?',[candidate.name,candidate.details,candidate.image||null,req.params.optionId,poll.id]);res.json({ok:true});
   }));
   app.delete('/api/destination-polls/:id/options/:optionId',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res);if(!poll)return;if(!ensureOpen(res,poll))return;
+    const poll=await findPoll(req,res,false,true);if(!poll)return;if(!ensureOpen(res,poll))return;
     if(!validId(req.params.optionId))return fail(res,400,'Invalid destination ID.');
     const [rows]=await run('SELECT id,created_by FROM destination_candidates WHERE id=? AND poll_id=?',[req.params.optionId,poll.id]);
     if(!rows.length)return fail(res,404,'Destination not found.');
@@ -88,7 +92,7 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     await run('DELETE FROM destination_candidates WHERE id=? AND poll_id=?',[req.params.optionId,poll.id]);res.json({ok:true});
   }));
   app.put('/api/destination-polls/:id/vote',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res);if(!poll)return;if(!ensureOpen(res,poll))return;
+    const poll=await findPoll(req,res,false,true);if(!poll)return;if(!ensureOpen(res,poll))return;
     if(!validId(req.body?.optionId))return fail(res,400,'Choose a valid destination.');
     const [options]=await run('SELECT id FROM destination_candidates WHERE id=? AND poll_id=?',[req.body.optionId,poll.id]);
     if(!options.length)return fail(res,404,'Destination not found in this poll.');
@@ -97,7 +101,7 @@ module.exports=function registerDestinationVotes(app,{run,protect,fail}){
     res.json({ok:true,optionId:String(req.body.optionId)});
   }));
   app.delete('/api/destination-polls/:id/vote',...protect(async(req,res)=>{
-    const poll=await findPoll(req,res);if(!poll)return;if(!ensureOpen(res,poll))return;
+    const poll=await findPoll(req,res,false,true);if(!poll)return;if(!ensureOpen(res,poll))return;
     await run('DELETE FROM destination_votes WHERE poll_id=? AND user_id=?',[poll.id,req.user.id]);res.json({ok:true});
   }));
 };

@@ -1,5 +1,5 @@
 /* JoyJourney database-backed trip application.
-   Authentication is handled by the server; no demo trips or localStorage trips are loaded. */
+   Authentication and trips are loaded from the server, not browser examples. */
 const JJ_TOKEN_KEY='joyjourneyApiToken';
 const JJ_COVER_DEFAULT='https://images.pexels.com/photos/28581877/pexels-photo-28581877.jpeg?auto=compress&cs=tinysrgb&w=1200';
 let tripCache=[];
@@ -41,11 +41,11 @@ function getModuleStates(){return tripModuleCache;}
 // Legacy activity module compatibility. Checklist uses individual database rows only.
 function updateModuleState(id,updater){
  id=String(id);const trip=getTripById(id);
- if(!trip || trip.status==='finished'){demoToast('This trip is finished or unavailable');return getModuleState(id);}
+ if(!trip || trip.status==='finished'){showToast('This trip is finished or unavailable');return getModuleState(id);}
  const old=structuredClone(getModuleState(id));
  const changed=updater(old)||old;
  tripModuleCache[id]=changed;
- tripModuleWrites[id]=(tripModuleWrites[id]||Promise.resolve()).catch(()=>{}).then(()=>apiJson(`/api/trips/${encodeURIComponent(id)}/modules`,'PUT',{activities:changed.activities||[]})).catch(error=>demoToast(error.message));
+ tripModuleWrites[id]=(tripModuleWrites[id]||Promise.resolve()).catch(()=>{}).then(()=>apiJson(`/api/trips/${encodeURIComponent(id)}/modules`,'PUT',{activities:changed.activities||[]})).catch(error=>showToast(error.message));
  return changed;
 }
 async function refreshChecklistState(id){
@@ -80,13 +80,22 @@ function createTripCard(trip){
  const link=document.createElement('a');link.className='trip-card-link active-trip saved-trip';link.dataset.tripId=trip.id;
  link.href=`trip-detail.html?trip=${encodeURIComponent(trip.id)}`;
  link.innerHTML=`<article class="card trip-card"><div class="trip-image-wrap"><img class="cover-image" alt="${escapeHTML(trip.name)} cover" src="${escapeHTML(safeCover(trip))}"><span class="pill ${trip.status==='finished'?'lavender':'pink'} trip-status">${trip.status==='finished'?'Finished':'Active'}</span></div><div class="trip-card-body"><h2>${escapeHTML(trip.name)}</h2><p><i class="ph-duotone ph-map-pin"></i> ${escapeHTML(trip.destination)}</p><p><i class="ph-duotone ph-calendar-blank"></i> ${escapeHTML(formatTripDate(trip.startDate,trip.endDate))}</p><p><i class="ph-duotone ph-users-three"></i> ${trip.memberCount} members · ${escapeHTML(trip.role)}</p><span class="card-enter"><i class="ph ph-arrow-up-right"></i></span></div></article>`;
+ const cover=link.querySelector('img.cover-image');
+ cover.addEventListener('error',()=>{
+  const fallback=JJ_COVER_DEFAULT;
+  if(cover.src!==new URL(fallback,location.href).href)cover.src=fallback;
+ },{once:true});
  return link;
 }
 function renderStoredTrips(){
  const grid=document.getElementById('activeTrips');if(!grid)return;
- grid.replaceChildren(...tripCache.map(createTripCard));
- const empty=document.getElementById('tripEmpty');if(empty)empty.hidden=tripCache.length>0;
+ const filter=document.getElementById('jjTripFilter')?.value||'all';
+ const visible=filter==='all'?tripCache:tripCache.filter(t=>t.status===filter);
+ grid.replaceChildren(...visible.map(createTripCard));
+ const empty=document.getElementById('tripEmpty');if(empty){empty.hidden=visible.length>0;
+  const text=empty.querySelector('p');if(text)text.textContent=tripCache.length?'No trips match this status. Try another filter.':'Create a new journey and invite your friends.';}
 }
+
 function renderStoredTripModules(){
  const configs={planner:plannerPanelMarkup,checklist:checklistPanelMarkup};
  Object.entries(configs).forEach(([group,markup])=>{
@@ -106,22 +115,25 @@ async function createTrip(){
  const startDate=document.getElementById('tripStart')?.value;
  const endDate=document.getElementById('tripEnd')?.value;
  const budget=Number(document.getElementById('tripBudget')?.value||0);
- if(!name||!destination||!startDate||!endDate||endDate<startDate||budget<0){demoToast('Check the trip name, destination, dates and budget');return;}
+ if(!name||!destination||!startDate||!endDate||endDate<startDate||budget<0){showToast('Check the trip name, destination, dates and budget');return;}
  createBusy=true;
  try{
  const {trip}=await apiJson('/api/trips','POST',{name,destination,startDate,endDate,budget,cover:pendingTripCover||JJ_COVER_DEFAULT});
  resetTripForm();closeModal('tripModal');location.href=`trip-detail.html?trip=${encodeURIComponent(trip.id)}`;
- }catch(e){demoToast(e.message);}finally{createBusy=false;}
+ }catch(e){showToast(e.message);}finally{createBusy=false;}
 }
 async function joinTrip(){
  const input=document.getElementById('joinTripCode');const code=input?.value.trim().toUpperCase();
- if(!code){demoToast('Enter an invite code');return;}
- try{const {trip}=await apiJson('/api/trips/join','POST',{code});location.href=`trip-detail.html?trip=${trip.id}`;}catch(e){demoToast(e.message);}
+ if(!code){showToast('Enter an invite code');return;}
+ try{const {trip}=await apiJson('/api/trips/join','POST',{code});location.href=`trip-detail.html?trip=${trip.id}`;}catch(e){showToast(e.message);}
 }
 function addJoinUI(){
  const hero=document.querySelector('#activeTrips')?.previousElementSibling;
  if(!hero||document.getElementById('joinTripCode'))return;
- const controls=document.createElement('div');controls.className='join-trip-action';controls.innerHTML='<label for="joinTripCode">Join a trip with invite code</label><div class="jj-inline"><input id="joinTripCode" maxlength="10" placeholder="10-character code" autocomplete="off"/><button class="btn soft" onclick="joinTrip()">Join Trip</button></div>';
+ const controls=document.createElement('div');controls.className='join-trip-action';controls.innerHTML='<label for="joinTripCode">Join a trip with a friend’s invitation link or code</label><div class="jj-inline"><input id="joinTripCode" maxlength="10" placeholder="10-character code" autocomplete="off"/><button class="btn soft" onclick="joinTrip()">Join Trip</button></div>';
+ const invite=new URLSearchParams(location.search).get('join')||'';
+ if(/^[a-zA-Z0-9]{10}$/.test(invite)){controls.querySelector('#joinTripCode').value=invite.toUpperCase();}
+
  hero.insertAdjacentElement('afterend',controls);
  const subtitle=hero.querySelector('.page-subtitle');if(subtitle)subtitle.textContent='All your active and finished trips, shared with your travel buddies.';
 }
@@ -152,7 +164,7 @@ function addTripManagement(trip){
  const actions=document.querySelector('.trip-detail-actions');if(!actions||document.getElementById('tripManageActions'))return;
  const box=document.createElement('div');box.id='tripManageActions';box.className='jj-management';
  if(trip.role==='owner'){
- box.innerHTML=`<button class="btn soft" onclick="editCurrentTrip()">Edit Trip</button> <button class="btn soft" onclick="toggleTripStatus()">${trip.status==='finished'?'Reopen Trip':'Mark as Finished'}</button><div class="jj-inline"><input id="addMemberEmail" type="email" placeholder="Member email" ${trip.status==='finished'?'disabled':''}/><button class="btn soft" onclick="addTripMember()" ${trip.status==='finished'?'disabled':''}>Add Member</button></div>`;
+ box.innerHTML=`<button class="btn soft" onclick="editCurrentTrip()">Edit Trip</button> <button class="btn soft" onclick="toggleTripStatus()">${trip.status==='finished'?'Reopen Trip':'Mark as Finished'}</button><button class="btn soft" onclick="copyTripInviteLink()"><i class="ph ph-link"></i> Copy invite link</button><div class="jj-inline"><input id="addMemberEmail" type="email" placeholder="Member email" ${trip.status==='finished'?'disabled':''}/><button class="btn soft" onclick="addTripMember()" ${trip.status==='finished'?'disabled':''}>Add Member</button></div>`;
  }else{box.innerHTML='<button class="btn soft" onclick="leaveTrip()">Leave Trip</button>';}
  actions.appendChild(box);
 }
@@ -170,31 +182,39 @@ function editCurrentTrip(){
 async function saveTripEdit(){
  const id=detailId();const current=getTripById(id);if(!current)return;
  const body={name:document.getElementById('editTripName').value.trim(),destination:document.getElementById('editTripDestination').value.trim(),startDate:document.getElementById('editTripStart').value,endDate:document.getElementById('editTripEnd').value,budget:Number(document.getElementById('editTripBudget').value||0),cover:document.getElementById('editTripCover').value.trim()||current.cover};
- try{await apiJson(`/api/trips/${id}`,'PATCH',body);location.reload();}catch(e){demoToast(e.message);}
+ try{await apiJson(`/api/trips/${id}`,'PATCH',body);location.reload();}catch(e){showToast(e.message);}
 }
 async function toggleTripStatus(){
  const trip=getTripById(detailId());if(!trip||trip.role!=='owner')return;
  const status=trip.status==='finished'?'active':'finished';
  if(!confirm(`Change status to ${status}?`))return;
- try{await apiJson(`/api/trips/${trip.id}/status`,'PATCH',{status});location.reload();}catch(e){demoToast(e.message);}
+ try{await apiJson(`/api/trips/${trip.id}/status`,'PATCH',{status});location.reload();}catch(e){showToast(e.message);}
+}
+async function copyTripInviteLink(){
+ const trip=getTripById(detailId());if(!trip?.inviteCode)return;
+ const link=new URL('trips.html',location.href);link.searchParams.set('join',trip.inviteCode);
+ try{await navigator.clipboard.writeText(link.href);showToast('Invite link copied! Your friend can open it after signing in.');}
+ catch(e){prompt('Copy this invite link:',link.href);}
 }
 async function addTripMember(){
  const id=detailId(),email=document.getElementById('addMemberEmail')?.value.trim();
- if(!email){demoToast('Enter a registered member email');return;}
- try{await apiJson(`/api/trips/${id}/members`,'POST',{email});location.reload();}catch(e){demoToast(e.message);}
+ if(!email){showToast('Enter a registered member email');return;}
+ try{await apiJson(`/api/trips/${id}/members`,'POST',{email});location.reload();}catch(e){showToast(e.message);}
 }
 async function removeTripMember(userId){
  if(!confirm('Remove this member from the trip?'))return;
- try{await apiRequest(`/api/trips/${detailId()}/members/${encodeURIComponent(userId)}`,{method:'DELETE'});location.reload();}catch(e){demoToast(e.message);}
+ try{await apiRequest(`/api/trips/${detailId()}/members/${encodeURIComponent(userId)}`,{method:'DELETE'});location.reload();}catch(e){showToast(e.message);}
 }
 async function leaveTrip(){
  if(!confirm('Leave this trip?'))return;
- try{await apiRequest(`/api/trips/${detailId()}/members/${currentId()}`,{method:'DELETE'});location.href='trips.html';}catch(e){demoToast(e.message);}
+ try{await apiRequest(`/api/trips/${detailId()}/members/${currentId()}`,{method:'DELETE'});location.href='trips.html';}catch(e){showToast(e.message);}
 }
-function requestDeleteCurrentTrip(){const trip=getTripById(detailId());if(trip?.role==='owner')openModal('deleteTripModal');}
+function requestDeleteCurrentTrip(){const trip=getTripById(detailId());if(trip?.role==='owner'){const input=document.getElementById('jjDeleteTripName');if(input)input.value='';openModal('deleteTripModal');}}
 async function confirmDeleteTrip(){
  const id=detailId(),trip=getTripById(id);if(!trip||trip.role!=='owner')return;
- try{await apiRequest(`/api/trips/${id}`,{method:'DELETE'});closeModal('deleteTripModal');location.href='trips.html';}catch(e){demoToast(e.message);}
+ const confirmName=document.getElementById('jjDeleteTripName')?.value.trim();
+ if(confirmName!==trip.name){showToast('Please type the exact trip name to confirm deletion');return;}
+ try{await apiJson(`/api/trips/${id}`,'DELETE',{confirmName});closeModal('deleteTripModal');location.href='trips.html';}catch(e){showToast(e.message);}
 }
 async function authLogin(event){
  event.preventDefault();const message=document.getElementById('loginMessage');
@@ -217,10 +237,10 @@ function authLogout(){apiRequest('/api/auth/logout',{method:'POST'}).catch(()=>{
 async function saveProfile(event){
  event?.preventDefault();if(!currentProfile)return;
  const id=(id)=>document.getElementById(id)?.value.trim()||'';
- try{const {user}=await apiJson('/api/auth/me','PATCH',{name:id('profileName'),email:id('profileEmail'),username:id('profileUsername'),style:id('profileStyle'),promptpay:id('profilePromptPay'),bankName:id('profileBankName'),bankAccount:id('profileBankAccount'),avatar:currentProfile.avatar||''});currentProfile=user;loadProfileForm(user);renderCurrentUserUI(user);demoToast('Profile saved');}catch(e){demoToast(e.message);}
+ try{const {user}=await apiJson('/api/auth/me','PATCH',{name:id('profileName'),email:id('profileEmail'),style:id('profileStyle'),promptpay:id('profilePromptPay'),avatar:currentProfile.avatar||''});currentProfile=user;loadProfileForm(user);renderCurrentUserUI(user);showToast('Profile saved');}catch(e){showToast(e.message);}
 }
 function shuffleAvatar(){
- if(!currentProfile)return;currentProfile.avatar=avatarUrl(`${currentProfile.name}-${Date.now()}`);loadProfileForm(currentProfile);demoToast('Save profile to keep this avatar');
+ if(!currentProfile)return;currentProfile.avatar=avatarUrl(`${currentProfile.name}-${Date.now()}`);loadProfileForm(currentProfile);showToast('Save profile to keep this avatar');
 }
 function renderDashboardTrip(){
  const feature=document.querySelector('.trip-feature');if(!feature)return;
@@ -243,9 +263,9 @@ function renderDashboardTrip(){
 
 function addActivity(){
  const panel=document.querySelector('[data-trip-panel="planner"].active');
- if(!panel){demoToast('Choose a trip first');return;}
+ if(!panel){showToast('Choose a trip first');return;}
  const trip=getTripById(panel.dataset.tripId);
- if(!trip||trip.status==='finished'){demoToast('Reopen this trip to edit its plan');return;}
+ if(!trip||trip.status==='finished'){showToast('Reopen this trip to edit its plan');return;}
  const title=prompt('Activity name');if(!title?.trim())return;
  const time=prompt('Time (HH:MM)','09:00')||'09:00';
  const note=prompt('Activity details (optional)','')||'';
@@ -254,15 +274,15 @@ function addActivity(){
  const item=document.createElement('article');item.className='timeline-item saved-activity';item.innerHTML=activityMarkup(entry);
  panel.querySelector('.timeline')?.appendChild(item);
  updateModuleState(trip.id,state=>{state.activities=[...(state.activities||[]),entry];return state;});
- demoToast('Activity saved');
+ showToast('Activity saved');
 }
 async function addChecklist(){
  const panel=document.querySelector('[data-trip-panel="checklist"].active');
- if(!panel){demoToast('Choose a trip first');return;}
+ if(!panel){showToast('Choose a trip first');return;}
  const trip=getTripById(panel.dataset.tripId);
- if(!trip||trip.status==='finished'){demoToast('Reopen the trip to edit packing');return;}
+ if(!trip||trip.status==='finished'){showToast('Reopen the trip to edit packing');return;}
  const label=prompt('Add a packing item');if(!label?.trim())return;
- try{await checklistCreate(trip.id,label.trim().slice(0,150));demoToast('Item added');}catch(e){demoToast(e.message);}
+ try{await checklistCreate(trip.id,label.trim().slice(0,150));showToast('Item added');}catch(e){showToast(e.message);}
 }
 // Checklist is managed by features.js with row-level database requests.
 function savePackingFromPanel(){/* Deprecated: do not persist the full list. */}
@@ -316,6 +336,6 @@ async function startJoyJourney(){
  if(typeof initTripMemories==='function')initTripMemories();
  if(typeof initPlannerPlacesPage==='function')await initPlannerPlacesPage();
  if(typeof initDestinationVoting==='function')initDestinationVoting();
- }catch(e){console.error(e);demoToast(e.message);const content=document.querySelector('.content');if(content){const p=document.createElement('p');p.className='form-message error';p.textContent=e.message;content.prepend(p);}}
+ }catch(e){console.error(e);showToast(e.message);const content=document.querySelector('.content');if(content){const p=document.createElement('p');p.className='form-message error';p.textContent=e.message;content.prepend(p);}}
 }
 document.addEventListener('DOMContentLoaded',startJoyJourney);

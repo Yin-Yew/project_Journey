@@ -108,13 +108,13 @@
     <div class="top-actions">
      <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
      <a class="user-chip" href="profile.html">
-      <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+      <img alt="Profile avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Traveler&amp;backgroundColor=ffd5dc"/>
       <span>
        <strong>
-        Yin
+        Traveler
        </strong>
        <small>
-        Beach Explorer
+        Traveler
        </small>
       </span>
       <i class="ph ph-caret-down">
@@ -246,8 +246,11 @@
      Delete this trip?
     </h2>
     <p>
-     This removes the trip from Planner, Expenses and Checklist too.
+     This permanently removes all activities, expenses, payment records, and photos for this trip. Back up your data first.
     </p>
+    <label class="jj-delete-confirm-label">พิมพ์ชื่อทริปเพื่อยืนยันการลบ
+      <input id="jjDeleteTripName" autocomplete="off" placeholder="ชื่อทริปเต็ม"/>
+    </label>
     <div class="delete-modal-actions">
      <button class="btn soft" onclick="closeModal('deleteTripModal')">
       Cancel

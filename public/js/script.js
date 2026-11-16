@@ -10,7 +10,7 @@ function closeModal(id) {
   document.getElementById(id)?.classList.remove("open");
 }
 
-function demoToast(message) {
+function showToast(message) {
   const toast = document.getElementById("toast");
 
   if (!toast) {
@@ -25,28 +25,10 @@ function demoToast(message) {
   }, 2200);
 }
 
-function demoLogin(event) {
-  event.preventDefault();
-  demoToast("Welcome back");
-
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 600);
-}
-
-function demoRegister(event) {
-  event.preventDefault();
-  demoToast("Account created");
-
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 600);
-}
-
 let pendingTripCover = "";
 
 
-// Demo trips removed: all displayed trips now come from MySQL.
+// Trips are populated by the authenticated MySQL API.
 const DEFAULT_TRIPS = {};
 
 function getDeletedTripIds() {
@@ -201,7 +183,7 @@ async function previewTripCover(event) {
   if (!file.type.startsWith("image/")) {
     event.target.value = "";
     pendingTripCover = "";
-    demoToast("Please choose an image file");
+    showToast("Please choose an image file");
     return;
   }
 
@@ -217,7 +199,7 @@ async function previewTripCover(event) {
     preview.innerHTML = `<img src="${pendingTripCover}" alt="Trip cover preview">`;
   } catch {
     pendingTripCover = "";
-    demoToast("Could not read this image");
+    showToast("Could not read this image");
   }
 }
 
@@ -295,17 +277,17 @@ function createTrip() {
   const budget = Number(document.getElementById("tripBudget")?.value || 0);
 
   if (!pendingTripCover) {
-    demoToast("Choose a cover photo first");
+    showToast("Choose a cover photo first");
     return;
   }
 
   if (!name || !destination || !startDate || !endDate) {
-    demoToast("Please fill in all trip details");
+    showToast("Please fill in all trip details");
     return;
   }
 
   if (new Date(`${endDate}T00:00:00`) < new Date(`${startDate}T00:00:00`)) {
-    demoToast("End date must be after start date");
+    showToast("End date must be after start date");
     return;
   }
 
@@ -326,7 +308,7 @@ function createTrip() {
     trips.push(trip);
     saveStoredTrips(trips);
   } catch {
-    demoToast("Photo is too large. Try another image");
+    showToast("Photo is too large. Try another image");
     return;
   }
 
@@ -334,13 +316,13 @@ function createTrip() {
   removeCompletedTrips();
   resetTripForm();
   closeModal("tripModal");
-  demoToast("Trip created with your cover photo");
+  showToast("Trip created with your cover photo");
 }
 
 function copyCode() {
   const code = document.getElementById("tripInviteCode")?.textContent.trim() || "";
   navigator.clipboard?.writeText(code);
-  demoToast("Invite code copied");
+  showToast("Invite code copied");
 }
 
 function vote(button) {
@@ -382,7 +364,7 @@ function addActivity() {
   const tripId = getTripIdFromPanel(panel);
 
   if (!timeline || !tripId) {
-    demoToast("Choose a trip first");
+    showToast("Choose a trip first");
     return;
   }
 
@@ -398,7 +380,7 @@ function addActivity() {
     return state;
   });
 
-  demoToast("Activity added to this trip");
+  showToast("Activity added to this trip");
 }
 
 function addChecklist() {
@@ -407,7 +389,7 @@ function addChecklist() {
   const tripId = getTripIdFromPanel(panel);
 
   if (!checklist || !tripId) {
-    demoToast("Choose a trip first");
+    showToast("Choose a trip first");
     return;
   }
 
@@ -425,7 +407,7 @@ function addChecklist() {
   `;
   checklist.appendChild(item);
   savePackingFromPanel(panel);
-  demoToast("Item added to this trip");
+  showToast("Item added to this trip");
 }
 
 
@@ -676,7 +658,7 @@ function confirmDeleteTrip() {
 
 function markPaid() {
   closeModal("payModal");
-  demoToast("Payment marked as paid");
+  showToast("Payment marked as paid");
 }
 
 function setTheme(theme, notify = true) {
@@ -686,7 +668,7 @@ function setTheme(theme, notify = true) {
   document.querySelectorAll("[data-theme-choice]").forEach((button) => {
     button.classList.toggle("active", button.dataset.themeChoice === selectedTheme);
   });
-  if (notify) demoToast("Theme updated");
+  if (notify) showToast("Theme updated");
 }
 
 function switchTripPanel(button, group) {
@@ -823,7 +805,7 @@ function makeInviteCode(trip) {
 
 function loadStoredTripDetail() {
   const params = new URLSearchParams(window.location.search);
-  const tripId = params.get("trip") || "samet";
+  const tripId = params.get("trip") || "";
   const trip = getTripById(tripId);
 
   if (!document.getElementById("tripDetailBanner")) {

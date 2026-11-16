@@ -108,13 +108,13 @@
     <div class="top-actions">
      <a aria-label="View my trips" class="icon-btn" href="trips.html"><i class="ph-duotone ph-suitcase-rolling"></i></a>
      <a class="user-chip" href="profile.html">
-      <img alt="Yin avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Yin&amp;backgroundColor=ffd5dc"/>
+      <img alt="Profile avatar" class="top-avatar" src="https://api.dicebear.com/9.x/notionists/svg?seed=Traveler&amp;backgroundColor=ffd5dc"/>
       <span>
        <strong>
-        Yin
+        Traveler
        </strong>
        <small>
-        Beach Explorer
+        Traveler
        </small>
       </span>
       <i class="ph ph-caret-down">
@@ -129,10 +129,10 @@
        Your travel identity
       </span>
       <h1>
-       Profile &amp; Payment
+       My Profile
       </h1>
       <p>
-       Manage your account, avatar and payment details in one place.
+       Choose the name your trip friends will see and update your contact details.
       </p>
      </div>
      <button class="btn danger" onclick="authLogout()">
@@ -151,13 +151,13 @@
        </button>
       </div>
       <h1 id="profileDisplayName">
-       Yin
+       Traveler
       </h1>
       <p id="profileHandle">
        @yin
       </p>
       <span class="pill pink" id="profileDisplayStyle">
-       Beach Explorer
+       Traveler
       </span>
       <button class="btn soft full" onclick="shuffleAvatar()" type="button">
        <i class="ph-duotone ph-smiley">
@@ -176,27 +176,21 @@
          Account
         </h2>
         <p>
-         Information shown around JoyJourney.
+         Only one display name is needed — no surname required.
         </p>
        </div>
       </div>
-      <div class="form-two">
-       <label>
-        Name
-        <input id="profileName" required=""/>
-       </label>
-       <label>
-        Username
-        <input id="profileUsername" required=""/>
-       </label>
-      </div>
+      <label>
+       Display name
+       <input id="profileName" maxlength="100" placeholder="Your name" required="" autocomplete="nickname"/>
+      </label>
       <label>
        Email
        <input id="profileEmail" required="" type="email"/>
       </label>
       <label>
        Travel Style
-       <input id="profileStyle" placeholder="Beach Explorer"/>
+       <input id="profileStyle" placeholder="Traveler"/>
       </label>
       <div class="profile-section-divider">
       </div>
@@ -207,10 +201,10 @@
        </span>
        <div>
         <h2>
-         Payment Details
+         PromptPay (optional)
         </h2>
         <p>
-         Used when friends need to settle expenses with you.
+         Friends in your trips can use this number to transfer their share.
         </p>
        </div>
       </div>
@@ -218,21 +212,11 @@
        PromptPay
        <input id="profilePromptPay" placeholder="08X-XXX-XXXX"/>
       </label>
-      <div class="form-two">
-       <label>
-        Bank
-        <input id="profileBankName" placeholder="KBank"/>
-       </label>
-       <label>
-        Bank Account
-        <input id="profileBankAccount" placeholder="XXX-X-XXXXX-X"/>
-       </label>
-      </div>
       <div class="profile-security-note">
        <i class="ph-duotone ph-shield-check">
        </i>
        <span>
-        This prototype stores profile data only in this browser.
+        Profile changes are saved to your JoyJourney account.
        </span>
       </div>
       <button class="btn primary" type="submit">
