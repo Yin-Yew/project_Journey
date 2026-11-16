@@ -55,55 +55,162 @@ function renderRealDashboard(){
  }
 }
 
+/* Per-member packing UI: one shared trip, individual member lists. */
+let jjChecklistView = new Map();
+let jjChecklistEditor = {tripId:'',itemId:null,busy:false};
+
+function checklistMembers(tripId){
+ const raw=tripDetailsCache[tripId]?.members||[];
+ return raw.length?raw:[currentProfile].filter(Boolean);
+}
+function checklistAssignee(tripId,item){
+ const members=new Set(checklistMembers(tripId).map(m=>String(m.id)));
+ const target=String(item.assignedTo||'');
+ if(members.has(target))return target;
+ const original=String(item.createdBy||'');
+ return members.has(original)?original:'';
+}
+function canEditChecklistItem(trip,item){
+ return trip.status!=='finished' && (
+  trip.role==='owner' || checklistAssignee(trip.id,item)===currentId()
+ );
+}
 function checklistActionsMarkup(trip,item){
- if(trip.status==='finished')return '<small>Read-only</small>';
- return `<span class="jj-item-actions"><button type="button" class="jj-icon-button" data-check-edit="${escapeHTML(item.id)}" title="Edit item" aria-label="Edit item"><i class="ph ph-pencil-simple"></i></button><button type="button" class="jj-icon-button danger-icon" data-check-delete="${escapeHTML(item.id)}" title="Delete item" aria-label="Delete item"><i class="ph ph-trash"></i></button></span>`;
+ if(!canEditChecklistItem(trip,item))return '';
+ return `<span class="jj-item-actions">
+   <button type="button" class="jj-icon-button" data-check-edit="${escapeHTML(item.id)}" title="Edit" aria-label="Edit ${escapeHTML(item.label)}"><i class="ph ph-pencil-simple"></i></button>
+   <button type="button" class="jj-icon-button danger-icon" data-check-delete="${escapeHTML(item.id)}" title="Delete" aria-label="Delete ${escapeHTML(item.label)}"><i class="ph ph-trash"></i></button>
+ </span>`;
 }
 function renderChecklistPanel(tripId){
  const trip=getTripById(tripId),panel=document.querySelector(`[data-trip-panel="checklist"][data-trip-id="${tripId}"]`);
  if(!trip||!panel)return;
  const list=panel.querySelector('.checklist');if(!list)return;
  const items=getModuleState(tripId).checklistItems||[];
- list.innerHTML=items.length?items.map(item=>`<div class="jj-check-row"><label class="saved-checklist-item"><input type="checkbox" data-item-id="${escapeHTML(item.id)}" ${item.checked?'checked':''} ${trip.status==='finished'?'disabled':''}><span><i class="ph-duotone ph-package"></i> ${escapeHTML(item.label)}</span></label>${checklistActionsMarkup(trip,item)}</div>`).join(''):'<div class="module-empty"><i class="ph-duotone ph-backpack"></i><h3>No packing items yet</h3><p>Use Add Item to start this trip checklist.</p></div>';
+ const members=checklistMembers(tripId);
+ const view=jjChecklistView.get(tripId)||'all';
+ const groups=members.map(m=>({id:String(m.id),name:m.name,avatar:m.avatar||avatarUrl(m.name),items:[]}));
+ const unassigned={id:'',name:'Unassigned',avatar:'',items:[]};
+ for(const item of items){
+  const owner=checklistAssignee(tripId,item);
+  const group=groups.find(m=>m.id===owner)||unassigned;
+  group.items.push(item);
+ }
+ if(unassigned.items.length)groups.push(unassigned);
+ const showGroups=view==='mine'?groups.filter(g=>g.id===currentId()):groups;
+ const renderGroup=group=>{
+  const done=group.items.filter(i=>i.checked).length;
+  const rows=group.items.map(item=>`<div class="jj-check-row">
+   <label class="saved-checklist-item"><input type="checkbox" data-item-id="${escapeHTML(item.id)}" ${item.checked?'checked':''} ${canEditChecklistItem(trip,item)?'':'disabled'}>
+    <span>${escapeHTML(item.label)}</span></label>${checklistActionsMarkup(trip,item)}</div>`).join('');
+  return `<section class="jj-check-person">
+   <header class="jj-check-person-head">
+    ${group.avatar?`<img src="${escapeHTML(group.avatar)}" alt="" class="jj-check-person-avatar">`:'<i class="ph-duotone ph-user-circle"></i>'}
+    <div><strong>${escapeHTML(group.name)}${group.id===currentId()?' <small>(You)</small>':''}</strong><small>${done}/${group.items.length} packed</small></div>
+   </header>
+   <div class="jj-check-person-items">${rows||'<p class="jj-check-empty">No items yet</p>'}</div>
+  </section>`;
+ };
+ const tabs=`<div class="jj-check-views" aria-label="Checklist view">
+  <button type="button" data-check-view="all" class="${view==='all'?'active':''}" aria-pressed="${view==='all'}">Everyone</button>
+  <button type="button" data-check-view="mine" class="${view==='mine'?'active':''}" aria-pressed="${view==='mine'}">Mine</button>
+ </div>`;
+ list.innerHTML=tabs+`<div class="jj-check-groups">${showGroups.map(renderGroup).join('')}</div>`;
  const percent=getTripStats(tripId).packingPercent;
  const switcher=[...document.querySelectorAll('.trip-switch[data-trip-id]')].find(el=>el.dataset.tripId===tripId);
- if(switcher){const small=switcher.querySelector('small');if(small)small.textContent=`${percent}% packed`;} 
- let progress=panel.querySelector('.jj-check-progress');if(!progress){progress=document.createElement('div');progress.className='jj-check-progress';panel.querySelector('.trip-section-head')?.after(progress);}
- progress.innerHTML=`<strong>${percent}% packed</strong><small>${items.filter(i=>i.checked).length} / ${items.length} items ready</small><div class="progress"><span style="width:${percent}%"></span></div>`;
+ if(switcher){const small=switcher.querySelector('small');if(small)small.textContent=`${items.filter(i=>i.checked).length}/${items.length} packed`;}
+ let progress=panel.querySelector('.jj-check-progress');
+ if(!progress){progress=document.createElement('div');progress.className='jj-check-progress';panel.querySelector('.trip-section-head')?.after(progress);}
+ progress.innerHTML=`<strong>${items.filter(i=>i.checked).length}/${items.length} packed</strong><small>${members.length} members</small><div class="progress"><span style="width:${percent}%"></span></div>`;
+ if(panel.classList.contains('active'))syncChecklistAddButton();
+}
+function activeChecklistTrip(){
+ const panel=document.querySelector('[data-trip-panel="checklist"].active');
+ return panel?getTripById(panel.dataset.tripId):null;
+}
+function syncChecklistAddButton(){
+ const add=document.getElementById('jjChecklistAdd');
+ if(add)add.disabled=!activeChecklistTrip()||activeChecklistTrip().status==='finished';
+}
+function closeChecklistEditor(){
+ if(jjChecklistEditor.busy)return;
+ document.getElementById('jjChecklistModal')?.classList.remove('open');
+ jjChecklistEditor={tripId:'',itemId:null,busy:false};
+}
+function openChecklistEditor(itemId=null){
+ const trip=activeChecklistTrip();
+ if(!trip||trip.status==='finished'){showToast('Choose an active trip');return;}
+ const item=itemId?(getModuleState(trip.id).checklistItems||[]).find(i=>String(i.id)===String(itemId)):null;
+ if(itemId&&!item)return;
+ if(item&&!canEditChecklistItem(trip,item))return;
+ const form=document.getElementById('jjChecklistForm');
+ if(!form)return;
+ form.reset();
+ const members=checklistMembers(trip.id);
+ const select=document.getElementById('jjChecklistAssignee');select.replaceChildren();
+ for(const member of members)select.add(new Option(member.id===currentId()?`${member.name} (Me)`:member.name,String(member.id)));
+ select.value=item?checklistAssignee(trip.id,item):currentId();
+ if(!select.value&&members.length)select.value=String(members[0].id);
+ form.elements.label.value=item?.label||'';
+ document.getElementById('jjChecklistModalTitle').textContent=item?'Edit Item':'Add Item';
+ jjChecklistEditor={tripId:trip.id,itemId:item?.id||null,busy:false};
+ document.getElementById('jjChecklistModal').classList.add('open');
+ form.elements.label.focus();
+}
+async function saveChecklistEditor(event){
+ event.preventDefault();if(jjChecklistEditor.busy)return;
+ const {tripId,itemId}=jjChecklistEditor;
+ const form=event.currentTarget;
+ const label=form.elements.label.value.trim();const assignedTo=form.elements.assignedTo.value;
+ if(!label||!assignedTo)return;
+ jjChecklistEditor.busy=true;
+ const button=document.getElementById('jjChecklistSave');button.disabled=true;
+ try{
+  if(itemId)await checklistUpdate(tripId,itemId,{label,assignedTo});
+  else await checklistCreate(tripId,label,assignedTo);
+  jjChecklistEditor.busy=false;
+  closeChecklistEditor();
+  showToast(itemId?'Item updated':'Item added');
+ }catch(error){showToast(error.message);jjChecklistEditor.busy=false;}
+ finally{button.disabled=false;}
 }
 function initTripChecklist(){
  const groups=document.querySelectorAll('[data-trip-panel="checklist"]');if(!groups.length)return;
  groups.forEach(panel=>renderChecklistPanel(panel.dataset.tripId));
- const add=document.querySelector('.page-head button[onclick="addChecklist()"]');if(add)add.disabled=!tripCache.some(t=>t.status==='active');
- document.addEventListener('change',async event=>{
-  const input=event.target.closest('[data-trip-panel="checklist"] input[type="checkbox"][data-item-id]');if(!input)return;
-  const panel=input.closest('[data-trip-id]'),tripId=panel?.dataset.tripId;
-  const itemId=input.dataset.itemId,checked=input.checked;
-  input.disabled=true;
-  try{await checklistUpdate(tripId,itemId,{checked});}
-  catch(e){showToast(e.message);try{await refreshChecklistState(tripId);}catch{input.checked=!checked;input.disabled=false;}}
- });
+ syncChecklistAddButton();
+ document.getElementById('jjChecklistAdd')?.addEventListener('click',()=>openChecklistEditor());
+ document.getElementById('jjChecklistForm')?.addEventListener('submit',saveChecklistEditor);
+ for(const id of ['jjChecklistCancel','jjChecklistClose'])document.getElementById(id)?.addEventListener('click',closeChecklistEditor);
+ document.getElementById('jjChecklistModal')?.addEventListener('click',event=>{if(event.target.id==='jjChecklistModal')closeChecklistEditor();});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')closeChecklistEditor();});
  document.addEventListener('click',async event=>{
+  const filter=event.target.closest('[data-check-view]');
+  if(filter){const panel=filter.closest('[data-trip-panel="checklist"]');if(panel){jjChecklistView.set(panel.dataset.tripId,filter.dataset.checkView);renderChecklistPanel(panel.dataset.tripId);}return;}
+  if(event.target.closest('.trip-switcher[data-trip-group="checklist"]')){setTimeout(syncChecklistAddButton,0);return;}
   const button=event.target.closest('button[data-check-edit],button[data-check-delete]');if(!button)return;
   const panel=button.closest('[data-trip-panel="checklist"]');if(!panel)return;
-  const tripId=panel.dataset.tripId,trip=getTripById(tripId);if(!trip||trip.status==='finished')return;
+  const tripId=panel.dataset.tripId,trip=getTripById(tripId);if(!trip)return;
   const id=button.dataset.checkEdit??button.dataset.checkDelete;
   const item=(getModuleState(tripId).checklistItems||[]).find(x=>String(x.id)===String(id));
-  if(!item)return;
+  if(!item||!canEditChecklistItem(trip,item))return;
+  if(button.hasAttribute('data-check-edit')){openChecklistEditor(id);return;}
+  if(!confirm(`Delete "${item.label}"?`))return;
   button.disabled=true;
-  try{
-   if(button.hasAttribute('data-check-delete')){
-    if(!confirm(`Delete "${item.label}"?`))return;
-    await checklistDelete(tripId,id);showToast('Item deleted');return;
-   }
-   const label=prompt('Edit packing item',item.label)?.trim();if(!label)return;
-   await checklistUpdate(tripId,id,{label:label.slice(0,150)});showToast('Item updated');
-  }catch(e){showToast(e.message);await refreshChecklistState(tripId).catch(()=>{});}
+  try{await checklistDelete(tripId,id);showToast('Item deleted');}
+  catch(error){showToast(error.message);await refreshChecklistState(tripId).catch(()=>{});}
   finally{button.disabled=false;}
  });
- // Synchronize changes made by other members while the tab is visible.
+ document.addEventListener('change',async event=>{
+  const input=event.target.closest('[data-trip-panel="checklist"] input[data-item-id]');if(!input)return;
+  const panel=input.closest('[data-trip-id]'),tripId=panel.dataset.tripId;
+  const item=(getModuleState(tripId).checklistItems||[]).find(x=>String(x.id)===input.dataset.itemId);
+  if(!item||!canEditChecklistItem(getTripById(tripId),item)){input.checked=!input.checked;return;}
+  input.disabled=true;
+  try{await checklistUpdate(tripId,item.id,{checked:input.checked});}
+  catch(error){showToast(error.message);await refreshChecklistState(tripId).catch(()=>{input.checked=!input.checked;input.disabled=false;});}
+ });
  document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible')groups.forEach(p=>refreshChecklistState(p.dataset.tripId).catch(()=>{}));
+  if(document.visibilityState==='visible')groups.forEach(panel=>refreshChecklistState(panel.dataset.tripId).catch(()=>{}));
  });
 }
 

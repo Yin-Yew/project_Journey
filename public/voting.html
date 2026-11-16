@@ -124,60 +124,69 @@
 <div class="content jj-workspace" id="jjVotingPage">
   <section class="page-head playful-head">
     <div><span class="eyebrow">Plan the next adventure together</span><h1>Next Trip Vote</h1>
-      <p class="page-subtitle">ทริปหน้าไปไหนดี? เพิ่มสถานที่ที่อยากไป แล้วให้เพื่อน ๆ โหวตกันได้เลย</p>
+      <p class="page-subtitle">Add places your group wants to visit, then let everyone vote anonymously.</p>
     </div>
   </section>
-  <section class="card jj-next-schedule" aria-label="กำหนดเวลาโหวต">
+  <section class="card jj-next-schedule" aria-label="Voting schedule">
     <div class="jj-next-section-header">
-      <div><h2>เวลาโหวต</h2><p>กำหนดเวลาเริ่มและเวลาปิดรับคะแนน</p></div>
-      <span id="jjNextPhase" class="pill soft-pill">กำลังโหลด...</span>
+      <div><h2>Voting window</h2><p id="jjNextScheduleHint">Loading voting schedule...</p></div>
+      <span id="jjNextPhase" class="pill soft-pill">Loading...</span>
     </div>
-    <div class="jj-next-dates">
-      <div><span><i class="ph-duotone ph-play-circle"></i> เริ่มโหวต</span><strong id="jjNextStart">—</strong></div>
-      <div><span><i class="ph-duotone ph-clock-countdown"></i> สิ้นสุดโหวต</span><strong id="jjNextEnd">—</strong></div>
+    <div class="jj-next-schedule-summary">
+      <div class="jj-next-countdown-box">
+        <span class="jj-next-countdown-label">Countdown</span>
+        <strong id="jjNextCountdown">Loading...</strong>
+      </div>
+      <div class="jj-next-dates">
+        <div><span><i class="ph-duotone ph-play-circle"></i> Starts</span><strong id="jjNextStart">—</strong></div>
+        <div><span><i class="ph-duotone ph-clock-countdown"></i> Ends</span><strong id="jjNextEnd">—</strong></div>
+      </div>
+    </div>
+    <div class="jj-next-owner-tools">
+      <button id="jjNextToggleSchedule" class="btn soft" type="button" hidden><i class="ph-duotone ph-clock"></i> Set voting time</button>
     </div>
     <form id="jjNextScheduleForm" class="jj-next-time-form" hidden>
       <div class="jj-next-time-fields">
-        <label>เริ่มโหวต<input id="jjNextStartInput" type="datetime-local" required/></label>
-        <label>สิ้นสุดโหวต<input id="jjNextEndInput" type="datetime-local" required/></label>
+        <label>Start time<input id="jjNextStartInput" type="datetime-local" required/></label>
+        <label>End time<input id="jjNextEndInput" type="datetime-local" required/></label>
       </div>
-      <button type="submit" class="btn soft"><i class="ph-bold ph-floppy-disk"></i> บันทึกเวลาโหวต</button>
+      <button type="submit" class="btn soft"><i class="ph-bold ph-floppy-disk"></i> Save voting time</button>
     </form>
-    <p id="jjNextScheduleHint" class="jj-next-guide">กำลังโหลดช่วงเวลา...</p>
     <details class="jj-next-round-panel" id="jjNextNewRound" hidden>
-      <summary><i class="ph-duotone ph-arrow-clockwise"></i> เริ่มโหวตรอบใหม่ (เก็บผลรอบเก่า)</summary>
+      <summary><i class="ph-duotone ph-arrow-clockwise"></i> Start a new voting round</summary>
       <form id="jjNextRoundForm" class="jj-next-time-form">
         <div class="jj-next-time-fields">
-          <label>รอบใหม่เริ่ม<input id="jjNextRoundStart" type="datetime-local" required/></label>
-          <label>รอบใหม่สิ้นสุด<input id="jjNextRoundEnd" type="datetime-local" required/></label>
+          <label>New round starts<input id="jjNextRoundStart" type="datetime-local" required/></label>
+          <label>New round ends<input id="jjNextRoundEnd" type="datetime-local" required/></label>
         </div>
-        <p class="jj-next-guide">ระบบจะปิดรอบปัจจุบัน เก็บผลคะแนนไว้ในประวัติ แล้วเปิดกระดานใหม่ให้ทุกคนเพิ่มสถานที่และโหวตใหม่</p>
-        <button class="btn primary" type="submit">ยืนยันเริ่มรอบใหม่</button>
+        <p class="jj-next-guide">The current round will be archived automatically so your group can start voting on a fresh list of places.</p>
+        <button class="btn primary" type="submit">Start new round</button>
       </form>
     </details>
   </section>
   <section class="card jj-next-entry" aria-labelledby="jjNextEntryTitle">
     <div class="jj-next-intro"><span class="jj-next-intro-icon"><i class="ph-duotone ph-globe-hemisphere-east"></i></span>
-      <div><h2 id="jjNextEntryTitle">อยากไปที่ไหน?</h2><p>พิมพ์แค่ชื่อจังหวัด เมือง หรือประเทศ ไม่ต้องสร้างโพลหรือทริปก่อน</p></div>
+      <div><h2 id="jjNextEntryTitle">Where should we go next?</h2><p>Just type a city, province, or country name. No poll setup needed.</p></div>
     </div>
     <form id="jjNextForm" class="jj-next-form">
-      <label class="jj-next-input-label" for="jjNextDestination">ชื่อสถานที่</label>
-      <div class="jj-next-input-row"><input id="jjNextDestination" name="name" type="text" required minlength="2" maxlength="150" autocomplete="off" placeholder="เช่น เชียงใหม่, ญี่ปุ่น, ภูเก็ต…"/>
-      <button id="jjNextAddButton" type="submit" class="btn primary"><i class="ph-bold ph-plus"></i> เพิ่มสถานที่</button></div>
+      <label class="jj-next-input-label" for="jjNextDestination">Place name</label>
+      <div class="jj-next-input-row"><input id="jjNextDestination" name="name" type="text" required minlength="2" maxlength="150" autocomplete="off" placeholder="e.g. Chiang Mai, Japan, Phuket…"/>
+      <button id="jjNextAddButton" type="submit" class="btn primary"><i class="ph-bold ph-plus"></i> Add place</button></div>
     </form>
-    <p class="jj-next-guide"><i class="ph-duotone ph-users-three"></i> ทุกคนที่ล็อกอินเพิ่มสถานที่ได้และโหวตได้คนละ 1 คะแนน · ไม่มีใครเห็นว่าใครโหวตให้ที่ไหน</p>
+    <p class="jj-next-guide"><i class="ph-duotone ph-users-three"></i> Any logged-in member can add a place and cast one anonymous vote.</p>
     <p id="jjNextMessage" class="jj-next-message" role="status" aria-live="polite"></p>
   </section>
   <section class="jj-next-section" aria-labelledby="jjNextResultsTitle">
-    <div class="jj-next-section-header"><div><h2 id="jjNextResultsTitle">สถานที่ที่เพื่อน ๆ เสนอ</h2><p id="jjNextCount">กำลังโหลดคะแนน...</p></div>
-      <button id="jjNextRefresh" class="btn soft" type="button" title="อัปเดตคะแนนล่าสุด"><i class="ph-duotone ph-arrows-clockwise"></i> รีเฟรช</button></div>
-    <div class="jj-next-grid" id="jjNextList" aria-live="polite"><p class="jj-loading">กำลังโหลดสถานที่...</p></div>
+    <div class="jj-next-section-header"><div><h2 id="jjNextResultsTitle">Suggested places</h2><p id="jjNextCount">Loading votes...</p></div>
+      <button id="jjNextRefresh" class="btn soft" type="button" title="Refresh latest votes"><i class="ph-duotone ph-arrows-clockwise"></i> Refresh</button></div>
+    <div class="jj-next-grid" id="jjNextList" aria-live="polite"><p class="jj-loading">Loading places...</p></div>
   </section>
   <section class="jj-next-section" aria-labelledby="jjNextHistoryTitle">
-    <div class="jj-next-section-header"><div><h2 id="jjNextHistoryTitle">ประวัติรอบโหวต</h2><p>ผลโหวตเก่าจะอยู่ตรงนี้เสมอ ไม่มีรายชื่อคนโหวต</p></div></div>
-    <div id="jjNextHistory" class="jj-next-history" aria-live="polite"><p class="jj-loading">กำลังโหลดประวัติ...</p></div>
+    <div class="jj-next-section-header"><div><h2 id="jjNextHistoryTitle">Voting history</h2><p>Older rounds stay here, with totals only and no voter names.</p></div></div>
+    <div id="jjNextHistory" class="jj-next-history" aria-live="polite"><p class="jj-loading">Loading history...</p></div>
   </section>
 </div>
+
 </main>
 <div class="toast" id="toast">
    Done

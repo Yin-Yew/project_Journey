@@ -27,16 +27,16 @@ function jjDrawPlanner(){
  if(!trip){const button=document.getElementById('jjTripStatusButton');if(button)button.hidden=true;jjNoTrips(container);return;}
  const days=jjNumberDays(trip);
  if(jjPlan.day>days)jjPlan.day=1;
- const dayList=jjPlan.activities.filter(a=>a.day===jjPlan.day);
+ const dayList=jjPlan.activities.filter(a=>a.day===jjPlan.day).sort((a,b)=>a.time.localeCompare(b.time)||Number(a.id)-Number(b.id));
  const readOnly=trip.status==='finished';
  const statusButton=document.getElementById('jjTripStatusButton');
  if(statusButton){statusButton.hidden=trip.role!=='owner';statusButton.disabled=false;statusButton.textContent=readOnly?'Set Active':'Mark as Finished';statusButton.classList.toggle('primary',readOnly);statusButton.classList.toggle('soft',!readOnly);}
  document.getElementById('jjAddActivity').disabled=readOnly;
- document.getElementById('jjPlannerSummary').textContent=`${days} day${days===1?'':'s'} · ${jjPlan.activities.length} activit${jjPlan.activities.length===1?'y':'ies'} · ${readOnly?'Finished · read only':'Active'}`;
- container.innerHTML=`<div class="jj-section-heading"><div><span class="pill pink">${jjSafe(trip.name)}</span><h2>Daily itinerary</h2><p>${jjSafe(formatTripDate(trip.startDate,trip.endDate))}</p></div><strong>${jjPlan.activities.length} activities</strong></div>
+ document.getElementById('jjPlannerSummary').textContent=`${jjPlan.activities.length} activities · ${readOnly?'Finished':'Active'}`;
+ container.innerHTML=`<div class="jj-section-heading"><div><span class="pill pink">${jjSafe(trip.name)}</span><h2>Itinerary</h2></div></div>
  <div class="jj-day-tabs" role="tablist" aria-label="Trip days">${Array.from({length:days},(_,n)=>`<button type="button" role="tab" aria-selected="${jjPlan.day===n+1}" class="${jjPlan.day===n+1?'active':''}" data-jj-day="${n+1}">Day ${n+1}<small>${jjSafe(jjDateForDay(trip.startDate,n+1))}</small></button>`).join('')}</div>
- <div class="jj-day-heading"><h3>Day ${jjPlan.day}</h3><span>${dayList.length} activities · ${jjSafe(jjDateForDay(trip.startDate,jjPlan.day))}</span></div>
- <div class="jj-activity-list">${dayList.length?dayList.map((a,i)=>`<article class="jj-activity-row card" data-jj-activity="${a.id}"><time>${jjSafe(a.time)}</time><div class="jj-activity-data"><h3>${jjSafe(a.title)}</h3>${a.location?`<p>${jjIcon('map-pin')} ${jjSafe(a.location)}</p>`:''}${a.details?`<p class="jj-activity-details">${jjSafe(a.details)}</p>`:''}</div>${!readOnly?`<div class="jj-activity-actions"><button type="button" data-jj-move="up" data-jj-id="${a.id}" aria-label="Move ${jjSafe(a.title)} up" ${i===0?'disabled':''}>${jjIcon('arrow-up')}</button><button type="button" data-jj-move="down" data-jj-id="${a.id}" aria-label="Move ${jjSafe(a.title)} down" ${i===dayList.length-1?'disabled':''}>${jjIcon('arrow-down')}</button><button type="button" data-jj-edit-activity="${a.id}" aria-label="Edit ${jjSafe(a.title)}">${jjIcon('pencil')}</button><button type="button" data-jj-delete-activity="${a.id}" aria-label="Delete ${jjSafe(a.title)}">${jjIcon('trash')}</button></div>`:''}</article>`).join(''):`<div class="jj-empty-state">${jjIcon('calendar-plus')}<h3>No activities on Day ${jjPlan.day}</h3><p>${readOnly?'This day had no planned activities.':'Use Add Activity to plan this day.'}</p></div>`}</div>`;
+ <div class="jj-day-heading"><h3>Day ${jjPlan.day}</h3><span>${jjSafe(jjDateForDay(trip.startDate,jjPlan.day))}</span></div>
+ <div class="jj-activity-list">${dayList.length?dayList.map(a=>`<article class="jj-activity-row card" data-jj-activity="${a.id}"><time>${jjSafe(a.time)}</time><div class="jj-activity-data"><h3>${jjSafe(a.title)}</h3>${a.location?`<p>${jjIcon('map-pin')} ${jjSafe(a.location)}</p>`:''}${a.details?`<p class="jj-activity-details">${jjSafe(a.details)}</p>`:''}</div>${!readOnly?`<div class="jj-activity-actions"><button type="button" data-jj-edit-activity="${a.id}" aria-label="Edit ${jjSafe(a.title)}">${jjIcon('pencil')}</button><button type="button" data-jj-delete-activity="${a.id}" aria-label="Delete ${jjSafe(a.title)}">${jjIcon('trash')}</button></div>`:''}</article>`).join(''):`<div class="jj-empty-state">${jjIcon('calendar-plus')}<h3>No activities yet</h3><p>${readOnly?'No plans':'Add an activity'}</p></div>`}</div>`;
 }
 async function jjSetPlannerTripStatus(){
  const trip=getTripById(jjPlan.tripId),button=document.getElementById('jjTripStatusButton');
@@ -83,13 +83,7 @@ async function jjHandlePlanClick(event){
   const id=del.dataset.jjDeleteActivity;const a=jjPlan.activities.find(x=>x.id===id);if(!a||!confirm(`Delete "${a.title}"?`))return;
   del.disabled=true;try{await apiRequest(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/${id}`,{method:'DELETE'});await jjLoadActivities();showToast('Activity deleted');}catch(e){jjWorkspaceError(e);del.disabled=false;}return;
  }
- const move=event.target.closest('[data-jj-move]');if(!move)return;
- const list=jjPlan.activities.filter(a=>a.day===jjPlan.day),from=list.findIndex(a=>a.id===move.dataset.jjId),to=from+(move.dataset.jjMove==='up'?-1:1);
- if(from<0||to<0||to>=list.length)return;
- [list[from],list[to]]=[list[to],list[from]];
- move.disabled=true;
- try{await apiJson(`/api/trips/${encodeURIComponent(jjPlan.tripId)}/activities/reorder/day`,'PUT',{day:jjPlan.day,ids:list.map(a=>a.id)});await jjLoadActivities();showToast('Order updated');}
- catch(e){await jjLoadActivities();jjWorkspaceError(e);}
+
 }
 function jjDrawPlaces(){
  const container=document.getElementById('jjPlacesBody'),trip=getTripById(jjPlaces.tripId);if(!container)return;

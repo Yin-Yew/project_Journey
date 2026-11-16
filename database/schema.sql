@@ -156,10 +156,13 @@ CREATE TABLE IF NOT EXISTS trip_checklist_items (
   label VARCHAR(150) NOT NULL,
   is_checked TINYINT(1) NOT NULL DEFAULT 0,
   created_by INT NULL,
+  assigned_to INT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_checklist_trip (trip_id,id),
+  INDEX idx_checklist_assignee (trip_id,assigned_to),
   FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
-  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_checklist_assignee FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS trip_checklist_migrations (
   trip_id INT PRIMARY KEY,

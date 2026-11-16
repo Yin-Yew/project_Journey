@@ -51,8 +51,7 @@ function loadProfileForm(user = getCurrentUser()) {
   const values = {
     profileName: user.name || "",
     profileEmail: user.email || "",
-    profileStyle: user.style || "",
-    profilePromptPay: user.promptpay || ""
+    profileStyle: user.style || ""
   };
 
   Object.entries(values).forEach(([id, value]) => {
@@ -101,12 +100,6 @@ function saveSparkleSetting(enabled) {
 
 function applyUISettings(settings = getUISettings()) {
   setTheme(settings.theme || "sakura", false);
-  document.body.classList.toggle("reduce-cute-motion", settings.animations === false);
-  document.body.classList.toggle("hide-sparkles", settings.sparkles === false);
-  const animationToggle = document.getElementById("animationToggle");
-  const sparkleToggle = document.getElementById("sparkleToggle");
-  if (animationToggle) animationToggle.checked = settings.animations !== false;
-  if (sparkleToggle) sparkleToggle.checked = settings.sparkles !== false;
 }
 
 function loadUISettings() {

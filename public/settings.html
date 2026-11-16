@@ -132,7 +132,7 @@
        Settings
       </h1>
       <p>
-       Your theme and animation choices stay saved on this device.
+       Choose your favorite theme and sign out when you are done.
       </p>
      </div>
     </section>
@@ -174,36 +174,21 @@
        </button>
       </div>
      </article>
-     <article class="card">
+     <article class="card settings-logout-card">
       <h3>
-       Animations
+       Logout
       </h3>
-      <label class="switch-row">
-       Cute animations
-       <input checked="" id="animationToggle" onchange="saveAnimationSetting(this.checked)" type="checkbox"/>
-      </label>
-      <label class="switch-row">
-       Sparkles
-       <input checked="" id="sparkleToggle" onchange="saveSparkleSetting(this.checked)" type="checkbox"/>
-      </label>
-     </article>
-     <article class="card">
-      <h3>
-       Account
-      </h3>
-      <a class="text-link" href="profile.html">
-       <i class="ph-duotone ph-user-circle">
-       </i>
-       Edit Profile
-      </a>
+      <p class="muted">
+       Sign out from this device when you are finished using JoyJourney.
+      </p>
       <button class="settings-logout" onclick="authLogout()">
-       <i class="ph-duotone ph-sign-out">
-       </i>
+       <i class="ph-duotone ph-sign-out"></i>
        Logout
       </button>
      </article>
     </section>
    </div>
+
   </main>
   <div class="toast" id="toast">
    Done

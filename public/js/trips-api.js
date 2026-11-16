@@ -55,8 +55,8 @@ async function refreshChecklistState(id){
  if(typeof renderChecklistPanel==='function')renderChecklistPanel(id);
  return items;
 }
-async function checklistCreate(id,label){
- await apiJson(`/api/trips/${encodeURIComponent(id)}/checklist`,'POST',{label});
+async function checklistCreate(id,label,assignedTo){
+ await apiJson(`/api/trips/${encodeURIComponent(id)}/checklist`,'POST',{label,assignedTo});
  await refreshChecklistState(id);
 }
 async function checklistUpdate(id,itemId,changes){
@@ -237,7 +237,7 @@ function authLogout(){apiRequest('/api/auth/logout',{method:'POST'}).catch(()=>{
 async function saveProfile(event){
  event?.preventDefault();if(!currentProfile)return;
  const id=(id)=>document.getElementById(id)?.value.trim()||'';
- try{const {user}=await apiJson('/api/auth/me','PATCH',{name:id('profileName'),email:id('profileEmail'),style:id('profileStyle'),promptpay:id('profilePromptPay'),avatar:currentProfile.avatar||''});currentProfile=user;loadProfileForm(user);renderCurrentUserUI(user);showToast('Profile saved');}catch(e){showToast(e.message);}
+ try{const {user}=await apiJson('/api/auth/me','PATCH',{name:id('profileName'),email:id('profileEmail'),style:id('profileStyle'),avatar:currentProfile.avatar||''});currentProfile=user;loadProfileForm(user);renderCurrentUserUI(user);showToast('Profile saved');}catch(e){showToast(e.message);}
 }
 function shuffleAvatar(){
  if(!currentProfile)return;currentProfile.avatar=avatarUrl(`${currentProfile.name}-${Date.now()}`);loadProfileForm(currentProfile);showToast('Save profile to keep this avatar');
@@ -276,13 +276,8 @@ function addActivity(){
  updateModuleState(trip.id,state=>{state.activities=[...(state.activities||[]),entry];return state;});
  showToast('Activity saved');
 }
-async function addChecklist(){
- const panel=document.querySelector('[data-trip-panel="checklist"].active');
- if(!panel){showToast('Choose a trip first');return;}
- const trip=getTripById(panel.dataset.tripId);
- if(!trip||trip.status==='finished'){showToast('Reopen the trip to edit packing');return;}
- const label=prompt('Add a packing item');if(!label?.trim())return;
- try{await checklistCreate(trip.id,label.trim().slice(0,150));showToast('Item added');}catch(e){showToast(e.message);}
+function addChecklist(){
+ if(typeof openChecklistEditor==='function')openChecklistEditor();
 }
 // Checklist is managed by features.js with row-level database requests.
 function savePackingFromPanel(){/* Deprecated: do not persist the full list. */}

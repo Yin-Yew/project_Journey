@@ -133,10 +133,10 @@
        Packing Checklist
       </h1>
 <p class="page-subtitle">
-       Each trip has its own packing list.
+       Pack by person.
       </p>
 </div>
-<button class="btn primary" onclick="addChecklist()">
+<button class="btn primary" id="jjChecklistAdd" type="button">
 <i class="ph-bold ph-plus">
 </i>
       Add Item
@@ -145,6 +145,22 @@
 <div class="trip-switcher" data-trip-group="checklist"></div>
 </div>
 </main>
+<div class="modal" id="jjChecklistModal" role="dialog" aria-modal="true" aria-labelledby="jjChecklistModalTitle">
+ <div class="card jj-editor jj-check-editor">
+  <div class="jj-editor-header">
+   <h2 id="jjChecklistModalTitle">Add Item</h2>
+   <button type="button" class="jj-close" id="jjChecklistClose" aria-label="Close">✕</button>
+  </div>
+  <form id="jjChecklistForm" class="jj-edit-form">
+   <label>Item <input name="label" id="jjChecklistName" maxlength="150" placeholder="e.g. Passport" required autocomplete="off"/></label>
+   <label>For <select name="assignedTo" id="jjChecklistAssignee" required></select></label>
+   <div class="jj-form-buttons">
+    <button type="button" id="jjChecklistCancel" class="btn soft">Cancel</button>
+    <button type="submit" class="btn primary" id="jjChecklistSave">Save</button>
+   </div>
+  </form>
+ </div>
+</div>
 <div class="toast" id="toast">
    Done
   </div>

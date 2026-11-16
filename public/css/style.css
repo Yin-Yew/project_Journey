@@ -3021,3 +3021,54 @@ html[data-theme] .day-tabs .active {
 .jj-delete-confirm-label{display:grid;gap:7px;margin:15px 0;text-align:left;font-weight:700}
 .jj-delete-confirm-label input{width:100%;padding:10px;border:1px solid #dfd0da;border-radius:10px}
 .jj-history-card[open]{border-color:#e4bfd8}
+
+
+/* v10 UI cleanup: voting, settings, and profile */
+.jj-next-schedule-summary{display:grid;grid-template-columns:minmax(190px,260px) minmax(0,1fr);gap:14px;align-items:stretch}
+.jj-next-countdown-box{border:1px solid var(--line);background:var(--surface,#fff);border-radius:15px;padding:15px 18px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.jj-next-countdown-label{color:var(--muted);font-size:.86rem;font-weight:700}
+.jj-next-countdown-box strong{font-size:1.12rem;line-height:1.3}
+.jj-next-owner-tools{margin-top:16px;display:flex;justify-content:flex-start}
+.jj-next-place-votes{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.jj-next-place-votes strong{font-size:2rem;line-height:1}
+.jj-next-place-votes small{font-size:.9rem;color:var(--muted)}
+.settings-logout-card{display:grid;gap:12px;align-content:start}
+.settings-logout-card .muted{margin:0;color:var(--muted)}
+@media(max-width:640px){.jj-next-schedule-summary{grid-template-columns:1fr}}
+
+/* v11: compact planner and per-member packing checklist */
+#jjPlannerPage .page-subtitle{font-size:.92rem}
+#jjPlannerPage .jj-workspace-summary{font-size:.83rem}
+#jjPlannerPage .jj-day-heading{margin:7px 0 13px}
+#jjPlannerPage .jj-section-heading{margin-bottom:12px}
+#jjPlannerPage .jj-section-heading h2{font-size:1.2rem}
+#jjPlannerPage .jj-activity-row{gap:13px;padding:13px 16px}
+#jjPlannerPage .jj-activity-data h3{font-size:1rem;margin:0 0 3px}
+#jjPlannerPage .jj-activity-data p{font-size:.87rem}
+#jjPlannerPage .jj-activity-actions{flex-wrap:nowrap}
+#jjPlannerPage .jj-activity-actions button{padding:7px}
+.jj-check-views{display:inline-flex;gap:4px;margin:0 0 15px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--accent-soft,#f8f1f6)}
+.jj-check-views button{padding:8px 16px;border:0;border-radius:10px;cursor:pointer;background:transparent;font:inherit;font-size:.88rem;font-weight:800;color:var(--muted)}
+.jj-check-views button.active{background:var(--surface,#fff);color:var(--text);box-shadow:0 2px 9px #493e4b1c}
+.jj-check-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(315px,100%),1fr));align-items:start;gap:13px}
+.jj-check-person{padding:17px;border:1px solid var(--line);border-radius:17px;background:var(--surface,#fff);min-width:0}
+.jj-check-person-head{display:flex;align-items:center;gap:11px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+.jj-check-person-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--accent-soft,#ffe8f1);flex-shrink:0}
+.jj-check-person-head>i{font-size:38px;color:var(--muted)}
+.jj-check-person-head div{display:grid;gap:2px;min-width:0}
+.jj-check-person-head strong{font-size:.98rem;overflow-wrap:anywhere}
+.jj-check-person-head strong small{font-weight:600;color:var(--muted);font-size:.78rem}
+.jj-check-person-head div>small{font-size:.78rem;color:var(--muted)}
+.jj-check-person-items{padding-top:8px}
+.jj-check-row{gap:7px;padding:8px 0;border-bottom:1px solid var(--line)}
+.jj-check-row:last-child{border-bottom:0}
+.jj-check-row .saved-checklist-item span{font-size:.93rem}
+.jj-check-row .saved-checklist-item input:disabled{cursor:not-allowed;opacity:.52}
+.jj-check-empty{margin:6px 0 2px;color:var(--muted);font-size:.87rem}
+.jj-check-progress{margin:9px 0 15px}
+.jj-check-progress strong{font-size:.96rem}
+.jj-check-editor .jj-edit-form{margin-top:19px}
+.jj-check-editor .jj-edit-form label{display:grid;gap:7px;font-weight:800}
+.jj-check-editor .jj-edit-form input,.jj-check-editor .jj-edit-form select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--surface,#fff);color:var(--text)}
+.jj-check-editor .jj-form-buttons{margin-top:17px}
+@media(max-width:600px){.jj-check-groups{grid-template-columns:1fr}.jj-check-person{padding:14px}}
