@@ -452,22 +452,13 @@ function expensePanelMarkup(trip) {
 }
 
 function checklistPanelMarkup(trip) {
-  const state = getModuleState(trip.id);
-  const items = (state.checklistItems || []).map((item, index) => `
-    <label class="saved-checklist-item">
-      <input type="checkbox" data-item-index="${index}" ${item.checked ? "checked" : ""}>
-      <span><i class="ph-duotone ph-package"></i> ${escapeHTML(item.label)}</span>
-    </label>
-  `).join("");
-  const empty = items ? "" : `<div class="module-empty"><i class="ph-duotone ph-backpack"></i><h3>No packing items yet</h3><p>Start a checklist for this trip.</p></div>`;
-
   return `
     <section class="trip-panel saved-trip-panel" data-trip-panel="checklist" data-trip-id="${trip.id}" id="check-${tripSlug(trip.id)}">
       <div class="trip-section-head">
-        <div><span class="pill pink">${escapeHTML(trip.name)}</span><h2>Packing List</h2></div>
+        <div><span class="pill pink">${escapeHTML(trip.name)}</span><h2>My Packing Notes</h2></div>
         <span class="trip-date">${escapeHTML(formatTripDate(trip.startDate, trip.endDate))}</span>
       </div>
-      <section class="card checklist">${empty}${items}</section>
+      <section class="card checklist jj-note-sheet" aria-label="Private packing notes"></section>
     </section>
   `;
 }

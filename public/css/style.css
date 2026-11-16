@@ -3072,3 +3072,31 @@ html[data-theme] .day-tabs .active {
 .jj-check-editor .jj-edit-form input,.jj-check-editor .jj-edit-form select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--surface,#fff);color:var(--text)}
 .jj-check-editor .jj-form-buttons{margin-top:17px}
 @media(max-width:600px){.jj-check-groups{grid-template-columns:1fr}.jj-check-person{padding:14px}}
+
+
+/* v12: private note-style packing list (no member selection or grouped cards). */
+.jj-note-sheet{max-width:880px;padding:26px 29px;display:block}
+.jj-note-heading{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.jj-note-heading>i{display:grid;place-items:center;width:41px;height:41px;border-radius:13px;background:var(--accent-soft,#e8f7fc);color:var(--pink-deep,#db7192);font-size:23px}
+.jj-note-heading>div{display:grid;gap:3px}
+.jj-note-heading strong{font-size:1.13rem}
+.jj-note-heading small{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;font-weight:600}
+.jj-note-add{display:flex;gap:10px;margin-top:20px;align-items:center}
+.jj-note-add input,.jj-note-edit-form input{min-width:0;width:100%;flex:1;border:1px solid var(--line);border-radius:13px;padding:12px 14px;font:inherit;background:var(--surface,#fff);color:var(--text)}
+.jj-note-add button{flex:none;white-space:nowrap}
+.jj-note-count{margin:18px 0 8px;font-weight:750;color:var(--muted);font-size:.9rem}
+.jj-note-items{border-top:1px solid var(--line)}
+.jj-note-row{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);min-height:53px;padding:5px 1px}
+.jj-note-check{flex:1;display:flex;align-items:center;gap:12px;min-width:0;cursor:pointer;font-size:.98rem}
+.jj-note-check input{accent-color:var(--pink-deep,#e65b8c);width:18px;height:18px;cursor:pointer;flex:none}
+.jj-note-check span{overflow-wrap:anywhere}
+.jj-note-row.is-done .jj-note-check span{text-decoration:line-through;color:var(--muted)}
+.jj-note-actions{display:flex;align-items:center;gap:4px}
+.jj-note-small-btn{width:34px;height:34px;display:grid;place-items:center;flex:none;border:0;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer;font-size:18px}
+.jj-note-small-btn:hover{background:var(--accent-soft,#e8f7fc);color:var(--text)}
+.jj-note-small-btn:focus-visible{outline:2px solid var(--pink-deep,#e65b8c);outline-offset:2px}
+.jj-note-edit-form{display:flex;align-items:center;gap:7px;width:100%}
+.jj-note-edit-form input{padding:9px 11px}
+.jj-note-empty,.jj-note-readonly{color:var(--muted);font-size:.9rem;margin:14px 0}
+.jj-note-sheet [disabled]{opacity:.65;cursor:not-allowed}
+@media(max-width:600px){.jj-note-sheet{padding:18px}.jj-note-add{flex-wrap:wrap}.jj-note-add input{flex-basis:100%}.jj-note-add button{width:100%;justify-content:center}}

@@ -504,3 +504,24 @@ MySQL Workbench สามารถสำรองฐานข้อมูลไ�
 - Memories: upload and edit captions.
 - Database backups: `server/tools/BACKUP-DATABASE.bat` and `server/tools/RESTORE-DATABASE.bat`. A restore overwrites the selected database and requires confirmation.
 - Clean setup: `server/tools/SETUP-AND-START.bat` (Windows) creates an empty schema, not mock trips.
+
+## v12 — Personal packing notes (private Checklist)
+
+Checklist is now a small personal notes list per trip and per signed-in account:
+- Choose a trip, type an item, and press **Add** (or Enter).
+- Tick prepared items, edit them inline, or delete them. No group tabs, assignee selection, or modal.
+- **Other members and even the trip owner cannot read, edit, or delete another person's notes.** Permissions are enforced by the MySQL-backed API, not simply CSS or browser filtering.
+- Dashboard packing counts and `/api/trips/:id/modules` are also scoped to the logged-in account.
+- Finished trips keep their lists visible but read-only.
+
+**Updating an existing v11 database:** Back up your data, replace the source, keep `server/.env`, and run `server/tools/SETUP-AND-START.bat`. The automatic setup updates existing checklist ownership to the account that *created* each row (formerly, v11 allowed assignment to a different member); the labels and checked status are preserved. Or manually run `database/migrate_v11.sql` against the selected JoyJourney database. No sample data is added. Always verify migrations against a backup before using live trip data.
+
+### วิธีใช้งาน Checklist (ฉบับปรับปรุงล่าสุด)
+
+1. เข้าสู่ระบบด้วยบัญชีของตนเอง แล้วเลือกเมนู **Checklist**
+2. เลือกทริป พิมพ์รายการของที่ต้องเตรียมในช่องโน้ต แล้วกด **Add** หรือ Enter
+3. ติ๊กช่องหน้ารายการเมื่อเตรียมเสร็จ หากต้องแก้ข้อความให้กดไอคอนดินสอ หรือกดถังขยะเพื่อลบ
+4. บัญชีอื่นในทริปเดียวกันจะไม่เห็นชื่อรายการหรือจำนวนรายการของคุณ เจ้าของทริปก็ไม่เห็นเช่นกัน
+5. เมื่อทริปมีสถานะ **Finished** ระบบจะให้ดูรายการเดิมได้แต่ไม่อนุญาตให้แก้ไข
+
+**หมายเหตุการอัปเกรด:** หากเคยใช้ v11 ซึ่งอนุญาตให้สร้างรายการให้เพื่อน การอัปเกรดเป็น v12 จะจัดรายการเก่ากลับเป็นของบัญชีที่สร้างรายการนั้น (ไม่ใช่ผู้รับมอบหมายเดิม) เพื่อรักษากติกา “แต่ละคนสร้างและเห็นโน้ตของตนเอง” ทั้งนี้ไม่มีการลบรายการหรือรีเซ็ตสถานะที่ติ๊กไว้ ควรสำรองฐานข้อมูลก่อนอัปเกรด
